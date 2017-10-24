@@ -31,11 +31,13 @@ with AhcWSComponents
 	import com.softwaremill.macwire._
 
 	//绑定服务
-	lazy val lagomServer           : LagomServer            = serverFor[CommonService](wire[CommonServiceImpl])
+	lazy val lagomServer              : LagomServer               = serverFor[CommonService](wire[CommonServiceImpl])
 	//注册序列化
-	lazy val jsonSerializerRegistry: JsonSerializerRegistry = SerializerRegistry
-	//注册仓库
-	lazy val callUpRecordRepository: CallUpRecordRepository = wire[CallUpRecordRepository]
+	lazy val jsonSerializerRegistry   : JsonSerializerRegistry    = SerializerRegistry
+	//注册通话记录仓库
+	lazy val callUpRecordRepository   : CallUpRecordRepository    = wire[CallUpRecordRepository]
+	//注册绑定关系仓库
+	lazy val bindingRelationRepository: BindingRelationRepository = wire[BindingRelationRepository]
 	//注册持久化
 	persistentEntityRegistry.register(wire[CallUpRecordEntity])
 	//注册事件处理

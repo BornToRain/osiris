@@ -2,6 +2,7 @@ package com.oasis.osiris.common.impl
 
 import java.time.Instant
 
+import com.oasis.osiris.common.impl.CallUpRecordCommand.Bind
 import play.api.libs.json.{Format, Json}
 
 /**
@@ -40,11 +41,14 @@ case class CallUpRecord
 	updateTime: Instant
 ////通话类型
 //private CallType       callType;
-////事件状态
-//private CallEventState state;
 )
 
 object CallUpRecord
 {
 	implicit val format: Format[CallUpRecord] = Json.format
+
+	//绑定电话关系
+	def bind(cmd: Bind) = CallUpRecord(cmd.id, cmd.call, cmd.called, cmd.maxCallTime, None, None, None, None, None, None, cmd.noticeUri, cmd.thirdId,
+		None,
+		cmd.createTime, cmd.updateTime)
 }

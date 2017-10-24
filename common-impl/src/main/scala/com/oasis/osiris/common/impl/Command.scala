@@ -32,4 +32,23 @@ object CallUpRecordCommand
 		implicit val format:Format[HangUp.type ] = singletonFormat(HangUp)
 	}
 
+
+//	public final String         id;
+//	public final String         callMobile;
+//	public final String         callToMobile;
+//	public final CallType       callType;
+//	public final Date           ringTime;
+//	public final Date           beginTime;
+//	public final Date           endTime;
+//	public final CallState      callState;
+//	public final CallEventState state;
+//	public final String         recordFile;
+//	public final String         fileServer;
+//	public final Boolean        isSuccess;
+//	public final String         message;
+//	public final String         callId;
+
+	//更新命令
+//	case class Update(id:String,call:String,called:String,)
+
 }

@@ -37,8 +37,7 @@ class CallUpRecordEntity extends PersistentEntity
 	{
 		//创建聚合根
 		case (Bound(cmd), _) =>
-		val data = CallUpRecord(cmd.id, cmd.call, cmd.called, cmd.maxCallTime, None, None, None, None, None, None, cmd.noticeUri, cmd.thirdId, None,
-			cmd.createTime, cmd.updateTime)
+		val data = CallUpRecord.bind(cmd)
 		CallUpRecordState(Some(data), None, None)
 	}
 
@@ -53,6 +52,6 @@ class CallUpRecordEntity extends PersistentEntity
 	.onEvent
 	{
 		//不处理事件
-		case (_:HungUp.type ,state) => state
+		case (_: HungUp.type, state) => state
 	}
 }

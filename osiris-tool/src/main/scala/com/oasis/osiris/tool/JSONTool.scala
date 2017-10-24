@@ -49,7 +49,20 @@ object JSONTool
 	lazy val fullDateTime = "yyyy-MM-dd HH:mm:ss"
 	lazy val formatter    = DateTimeFormatter.ofPattern(fullDateTime).withZone(ZoneId.systemDefault)
 
-	implicit val instantReads = Reads[Instant](_.validate[String].map(Instant.parse))
+	implicit val instantReads: Reads[Instant] = Reads[Instant]
+	{
+		_.validate[String].map
+		{
+			s =>
+				//需要给时间添加时区才能正确解析
+			val utc = s.collect
+			{
+				case ' ' => 'T'
+				case s   => s
+			} + 'Z'
+			Instant.parse(utc)
+		}
+	}
 
 	implicit val instantWrites: Writes[Instant] = Writes
 	{

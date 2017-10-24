@@ -14,7 +14,7 @@ import scala.concurrent.ExecutionContext
 class CallUpRecordRepository(session: CassandraSession)(implicit ec: ExecutionContext)
 {
 	def gets = for
-		{
+	{
 		list <- session.selectAll("SELECT * FROM call_up_record")
 		data <- list.map(row =>
 		{
@@ -38,10 +38,13 @@ class CallUpRecordRepository(session: CassandraSession)(implicit ec: ExecutionCo
 				createTime, updateTime)
 		}).liftF
 	} yield data
-
 }
 
-class Repository
+//绑定关系仓库
+class BindingRelationRepository(session:CassandraSession)(implicit ec:ExecutionContext)
 {
-
+	def getByPK(call:String) = for
+	{
+		data <- session.selectOne("SELECT * FROM binding_relation WHERE call = ?",call)
+	} yield data.map(_.getString("called"))
 }
