@@ -13,6 +13,14 @@ object Restful
 {
 	type Response = (ResponseHeader, Done)
 
+	/**
+		* Http资源访问成功 => 状态码200
+		*/
+	def ok(implicit ec: ExecutionContext): Future[Response] = Future
+	{
+		(ResponseHeader(200,
+			MessageProtocol(Some("application/json"), Some("UTF-8"), None), Vector.empty), Done)
+	}
 
 	/**
 		* Http资源创建成功 => 状态码201

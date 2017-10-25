@@ -46,5 +46,5 @@ class BindingRelationRepository(session:CassandraSession)(implicit ec:ExecutionC
 	def getByPK(call:String) = for
 	{
 		data <- session.selectOne("SELECT * FROM binding_relation WHERE call = ?",call)
-	} yield data.map(_.getString("called"))
+	} yield data.map(row => (row.getString("called"),row.getString("call_up_record_id")))
 }

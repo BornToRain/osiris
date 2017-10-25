@@ -4,8 +4,11 @@ import java.time.Instant
 
 import akka.Done
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.ReplyType
-import play.api.libs.json.{Format, Json}
+import com.oasis.osiris.common.impl.CallEventStatus.CallEventStatus
+import com.oasis.osiris.common.impl.CallStatus.CallStatus
+import com.oasis.osiris.tool.DateTool
 import com.oasis.osiris.tool.JSONTool._
+import play.api.libs.json.{Format, Json}
 
 /**
 	* 领域命令
@@ -29,26 +32,41 @@ object CallUpRecordCommand
 	//挂断命令
 	case object HangUp extends CallUpRecordCommand[Done]
 	{
-		implicit val format:Format[HangUp.type ] = singletonFormat(HangUp)
+		implicit val format: Format[HangUp.type] = singletonFormat(HangUp)
 	}
 
-
-//	public final String         id;
-//	public final String         callMobile;
-//	public final String         callToMobile;
-//	public final CallType       callType;
-//	public final Date           ringTime;
-//	public final Date           beginTime;
-//	public final Date           endTime;
-//	public final CallState      callState;
-//	public final CallEventState state;
-//	public final String         recordFile;
-//	public final String         fileServer;
-//	public final Boolean        isSuccess;
-//	public final String         message;
-//	public final String         callId;
-
 	//更新命令
-//	case class Update(id:String,call:String,called:String,)
+	case class Update
+	(
+		id: Option[String],
+		call: String,
+		called:String,
+		callType: String,
+		ringTime: Option[Instant],
+		beginTime: Option[Instant],
+		endTime: Option[Instant],
+		status: CallStatus,
+		eventStatus: CallEventStatus,
+		recordFile: Option[String],
+		fileServer: Option[String],
+		callId: Option[String]
+	) extends CallUpRecordCommand[Done]
 
+	object Update
+	{
+		implicit val format: Format[Update] = Json.format
+
+		def fromMap(map:Map[String,String]) =
+		{
+			val ringTime = map.get("Ring").map(DateTool.toInstant)
+			val beginTime = map.get("Begin").map(DateTool.toInstant)
+			val endTime = map.get("End").map(DateTool.toInstant)
+			val status = CallStatus.withName(map("State"))
+			val eventStatus =CallEventStatus.withName(map("CallState"))
+
+			apply(map.get("ActionID"),map("CallNo"),map("CalledNo"),map("CallType"),ringTime,beginTime,endTime,status,eventStatus,map.get("RecordFile"),
+				map.get("FileServer"),map.get("CallID"))
+		}
+	}
 }
+

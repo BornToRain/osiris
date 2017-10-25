@@ -15,7 +15,7 @@ trait Api extends SLF4JLogging
 	{
 		request =>
 		log.info(s"请求方式 =====> ${request.method }")
-		log.info(s"请求URI =====> ${request.uri }")
+		log.info(s"请求URI  =====> ${request.uri }")
 		if (log.isDebugEnabled)
 		{
 			log.debug(s"请求内容协议 =====> ${request.protocol.contentType }")

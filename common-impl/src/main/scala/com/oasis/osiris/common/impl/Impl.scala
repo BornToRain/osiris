@@ -4,8 +4,6 @@ import com.lightbend.lagom.scaladsl.api.transport.NotFound
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntityRegistry
 import com.lightbend.lagom.scaladsl.server.ServerServiceCall
 import com.oasis.osiris.common.api.CommonService
-import com.oasis.osiris.common.api.MoorDTO.CallEventStatus.CallEventStatus
-import com.oasis.osiris.common.api.MoorDTO.CallStatus.CallStatus
 import com.oasis.osiris.common.impl.CallUpRecordCommand._
 import com.oasis.osiris.tool.{Api, IdWorker, Restful}
 
@@ -29,8 +27,10 @@ class CommonServiceImpl
 		{
 			//Id生成器
 			id <- IdWorker.liftF()
-			//发出绑定命令
-			_ <- refFor(id).ask(Bind(id, data.thirdId, data.call, data.called, data.maxCallTime, data.noticeUri))
+			//绑定命令
+			cmd <- Bind(id, data.thirdId, data.call, data.called, data.maxCallTime, data.noticeUri).liftF
+			//发送绑定命令
+			_ <- refFor(id).ask(cmd)
 			//Http201响应
 			result <- Restful.created(request)(id)
 		} yield result
@@ -52,10 +52,11 @@ class CommonServiceImpl
 	{
 		_ =>
 		log.info(s"容联七陌电话回调 =====> $mobile")
+		//绑定关系
 		bindingRelationRepository.getByPK(mobile)
 		.map
 		{
-			case Some(d) => d
+			case Some((called, _)) => called
 			//404 NotFound
 			case _ => throw NotFound(s"手机号${mobile }绑定关系不存在")
 		}
@@ -63,80 +64,43 @@ class CommonServiceImpl
 
 	override def callbackCallUpRecord = v2(ServerServiceCall
 	{
-		(request,_) =>
-		val s = request.uri.getQuery.split("&")
-
-			log.error(request.uri.getQuery)
-			Restful.noContent
+		(request, _) =>
+		for
+		{
+			//参数
+			param <- getParam(request.uri.getQuery).liftF
+			//更新命令
+			cmd <-
+			{
+				log.info("通话事件推送更新回调")
+				log.info("+---------------------------------------------------------------------------------------------------------------------------+")
+				param.foreach{ case (k, v) => log.info(s" $k => $v") }
+				log.info("+---------------------------------------------------------------------------------------------------------------------------+")
+				//Map参数构建更新命令
+				Update.fromMap(param).liftF
+			}
+			id <- bindingRelationRepository.getByPK(cmd.call).collect
+			{
+				case Some((_, id)) => id
+			}.liftF
+			//发送更新命令
+			_ <- id.map(refFor(_).ask(cmd)).liftF
+			//Http200响应
+			result <- Restful.ok
+		} yield result
 	})
 
-//	override def callbackCallUpRecord(CallNo: String, CalledNo: String, CallSheetID: String,
-//		CallType: String, Ring: String, Begin: String, End: String,
-//		QueueTime: String, Agent: String, Exten: String,
-//		AgentName: String, Queue: String, State: CallStatus,
-//		CallState: CallEventStatus, ActionID: String,
-//		WebcallActionID: String, RecordFile: String, FileServer: String,
-//		Province: String, District: String, CallID: String,
-//		IVRKEY: String, AccountId: String, AccountName: String) = v2(ServerServiceCall
-//	{
-//		(_, _) =>
-//		log.info("通话事件推送更新回调")
-//		log.info("+---------------------------------------------------------------------------------------------------------------------------+")
-//		log.info(" CallNo => {}", CallNo)
-//		log.info(" CalledNo => {}", CalledNo)
-//		log.info(" CallSheetId => {}", CallSheetID)
-//		log.info(" CallType => {}", CallType)
-//		log.info(" RingTime => {}", Ring)
-//		log.info(" BeginTime => {}", Begin)
-//		log.info(" EndTime => {}", End)
-//		log.info(" Queue => {}", Queue)
-//		log.info(" QueueTime => {}", QueueTime)
-//		log.info(" Agent => {}", Agent)
-//		log.info(" AgentName => {}", AgentName)
-//		log.info(" Exten => {}", Exten)
-//		log.info(" State => {}", CallStatus)
-//		log.info(" CallState => {}", CallEventStatus)
-//		log.info(" ActionId => {}", ActionID)
-//		log.info(" WebCallActionId => {}", WebcallActionID)
-//		log.info(" RecordFile => {}", RecordFile)
-//		log.info(" FileServer => {}", FileServer)
-//		log.info(" Province => {}", Province)
-//		log.info(" District => {}", District)
-//		log.info(" CallId => {}", CallID)
-//		log.info(" IVRkey => {}", IVRKEY)
-//		log.info(" AccountId => {}", AccountId)
-//		log.info(" AccountName => {}", AccountName)
-//		log.info("+---------------------------------------------------------------------------------------------------------------------------+")
-//		Restful.noContent
-//	})
+	//从QueryString获取Map集合参数
+	private def getParam(query: String) = query
+	.split("&")
+	.map(_.split("="))
+	.foldLeft(Map.empty[String, String])
+	{
+		case (map, a@Array(x, y)) if a.length == 2 => map + (x -> y)
+		case (map, _)                              => map
+	}
+
 
 	private def refFor(id: String) = registry.refFor[CallUpRecordEntity](id)
-}
 
-object test extends App
-{
-	val s = """CallNo=13589771577&CallSheetID=2966c9e8-8066-4b91-93a9-c43c9f2f6036&CalledNo=01050854063&CallID=cc-ali-9-1434111238.12986&CallType=normal&RecordFile=monitor/cc.ali.1.9/20150612/20150612-201434_N00000000605_10001092_13589771577_01050854063_10001092_cc-ali-9-1434111238.12986.mp3&Ring=2015-06-12 20:13:58&Begin=2015-06-12 20:14:50&End=2015-06-12 20:15:42&QueueTime=2015-06-12 20:14:34&Queue=其他&Agent=8007&Exten=8007&AgentName=郭小芳&ActionID=&CallState=Unlink&State=dealing&FileServer=http://121.40.138.123&RingTime=1434111274.035155&IVRKEY=10004@0&Province=山东省&District=烟台市"""
-
-//	s.split("&").foreach(println)
-
-	val ss = s.split("&").map(s =>
-	{
-
-		val array = s.split("=")
-		array.foreach(println)
-		"test"
-	})
-
-	println(ss)
-
-//	val str = "1,122,xxx,shandongyin"
-//	val file=sc.textFile(logFile)
-//	file.flatMap(line=>line.split(",")(3))
-
-
-
-//	val ss = s.split("&")
-//	ss.map(s => s.split("=")).reduce((x,y) => x)
-
-//	s.groupBy(d => d == "&").foreach(println)
 }

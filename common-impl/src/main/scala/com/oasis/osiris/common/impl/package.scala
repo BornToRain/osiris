@@ -11,4 +11,5 @@ package object impl
 	{
 		def liftF(implicit ec: ExecutionContext) = Future(data)
 	}
+
 }
