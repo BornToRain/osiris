@@ -49,9 +49,17 @@ class CallUpRecordEntity extends PersistentEntity
 		//持久化挂断事件回复完成
 		case (_, ctx, _) => ctx.thenPersist(HungUp)(_ => ctx.reply(Done))
 	}
+	//处理更新命令
+	.onCommand[Update, Option[CallUpRecord]]
+	{
+		//持久化更新事件回复聚合根
+		case ((cmd: Update), ctx, state) => ctx.thenPersist(Updated(cmd))(_ => ctx.reply(state.data))
+	}
 	.onEvent
 	{
-		//不处理事件
+		//不处理挂断事件
 		case (_: HungUp.type, state) => state
+		//更新聚合根
+		case (event: Updated, state) => state.update(event)
 	}
 }

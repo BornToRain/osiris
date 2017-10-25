@@ -2,6 +2,7 @@ package com.oasis.osiris.common.impl
 
 import com.oasis.osiris.common.impl.CallEventStatus.CallEventStatus
 import com.oasis.osiris.common.impl.CallStatus.CallStatus
+import com.oasis.osiris.common.impl.CallUpRecordEvent.Updated
 import com.oasis.osiris.tool.JSONTool._
 import play.api.libs.json.{Format, Json}
 
@@ -34,6 +35,14 @@ case class CallUpRecordState
 	status: Option[CallStatus],
 	eventStatus: Option[CallEventStatus]
 )
+{
+	//更新通话记录状态
+	def update(event: Updated) = copy(
+		status = Some(event.cmd.status),
+		eventStatus = Some(event.cmd.eventStatus),
+		data = this.data.map(_.update(event))
+	)
+}
 
 object CallUpRecordState
 {

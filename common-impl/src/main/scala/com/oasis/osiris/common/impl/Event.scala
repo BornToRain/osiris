@@ -1,7 +1,7 @@
 package com.oasis.osiris.common.impl
 
 import com.lightbend.lagom.scaladsl.persistence.{AggregateEvent, AggregateEventTag}
-import com.oasis.osiris.common.impl.CallUpRecordCommand.Bind
+import com.oasis.osiris.common.impl.CallUpRecordCommand._
 import play.api.libs.json.{Format, Json}
 import com.oasis.osiris.tool.JSONTool._
 
@@ -17,7 +17,7 @@ sealed trait CallUpRecordEvent extends AggregateEvent[CallUpRecordEvent]
 object CallUpRecordEvent
 {
 	//按事件数分片
-	val numberShared = 2
+	val numberShared = 3
 	val tag          = AggregateEventTag.sharded[CallUpRecordEvent](numberShared)
 
 	//绑定事件
@@ -32,5 +32,11 @@ object CallUpRecordEvent
 	case object HungUp extends CallUpRecordEvent
 	{
 		implicit val format:Format[HungUp.type ] = singletonFormat(HungUp)
+	}
+
+	//更新时间
+	case class Updated(cmd:Update) extends CallUpRecordEvent
+	{
+		implicit val format:Format[Updated] = Json.format
 	}
 }

@@ -3,6 +3,7 @@ package com.oasis.osiris.common.impl
 import java.time.Instant
 
 import com.oasis.osiris.common.impl.CallUpRecordCommand.Bind
+import com.oasis.osiris.common.impl.CallUpRecordEvent.Updated
 import play.api.libs.json.{Format, Json}
 
 /**
@@ -42,6 +43,18 @@ case class CallUpRecord
 ////通话类型
 //private CallType       callType;
 )
+{
+	//更新聚合根
+	def update(event: Updated) = copy(
+		ringTime = event.cmd.ringTime,
+		beginTime = event.cmd.beginTime,
+		endTime = event.cmd.endTime,
+		recordFile = event.cmd.recordFile,
+		fileServer = event.cmd.fileServer,
+		callId = event.cmd.callId,
+		updateTime = event.cmd.updateTime
+	)
+}
 
 object CallUpRecord
 {

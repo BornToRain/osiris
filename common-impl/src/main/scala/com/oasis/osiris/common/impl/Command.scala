@@ -49,13 +49,15 @@ object CallUpRecordCommand
 		eventStatus: CallEventStatus,
 		recordFile: Option[String],
 		fileServer: Option[String],
-		callId: Option[String]
+		callId: Option[String],
+		updateTime:Instant = Instant.now
 	) extends CallUpRecordCommand[Done]
 
 	object Update
 	{
 		implicit val format: Format[Update] = Json.format
 
+		//map转case class
 		def fromMap(map:Map[String,String]) =
 		{
 			val ringTime = map.get("Ring").map(DateTool.toInstant)
