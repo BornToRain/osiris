@@ -1,7 +1,7 @@
 package com.oasis.osiris.common.api
 
-import play.api.libs.json.{Format, Json}
 import com.oasis.osiris.tool.JSONTool._
+import play.api.libs.json.{Format, Json}
 
 /**
 	* 接口层DTO对象

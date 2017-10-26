@@ -4,6 +4,7 @@ import java.time.Instant
 
 import com.lightbend.lagom.scaladsl.persistence.cassandra.CassandraSession
 import com.oasis.osiris.tool.db.Implicits._
+import com.oasis.osiris.tool.functional.Lift.ops._
 
 import scala.concurrent.ExecutionContext
 
@@ -41,10 +42,11 @@ class CallUpRecordRepository(session: CassandraSession)(implicit ec: ExecutionCo
 }
 
 //绑定关系仓库
-class BindingRelationRepository(session:CassandraSession)(implicit ec:ExecutionContext)
+class BindingRelationRepository(session: CassandraSession)(implicit ec: ExecutionContext)
 {
-	def getByPK(call:String) = for
+	def getByPK(call: String) = for
 	{
-		data <- session.selectOne("SELECT * FROM binding_relation WHERE call = ?",call)
-	} yield data.map(row => (row.getString("called"),row.getString("call_up_record_id")))
+		data <- session.selectOne("SELECT * FROM binding_relation WHERE call = ?", call)
+		tuple <- data.map(row => (row.getString("called"), row.getString("call_up_record_id"))).liftF
+	} yield tuple
 }

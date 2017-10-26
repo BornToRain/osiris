@@ -22,7 +22,7 @@ class CallUpRecordEventProcessor(session: CassandraSession, readSide: CassandraR
 extends ReadSideProcessor[CallUpRecordEvent] with SLF4JLogging
 {
 	private val bindCallUpRecordPro = Promise[PreparedStatement]
-	private val bindRelationPro = Promise[PreparedStatement]
+	private val bindRelationPro     = Promise[PreparedStatement]
 
 	override def aggregateTags = CallUpRecordEvent.tag.allTags
 	override def buildHandler = readSide.builder[CallUpRecordEvent]("callUpRecordEventOffSet")
@@ -33,7 +33,7 @@ extends ReadSideProcessor[CallUpRecordEvent] with SLF4JLogging
 
 	//数据库表创建
 	private def createTable = for
-	{
+		{
 		//通话记录表
 		_ <- session.executeCreateTable
 		{
@@ -77,11 +77,13 @@ extends ReadSideProcessor[CallUpRecordEvent] with SLF4JLogging
 	private def prepare =
 	{
 		//设置集群编码器
-		getCluster.map(_.getConfiguration.getCodecRegistry.register(codecs:_*))
+		getCluster.map(_.getConfiguration.getCodecRegistry.register(codecs: _*))
 		//绑定通话记录SQL
-		bindCallUpRecordPro.completeWith(session.prepare("""INSERT INTO call_up_record(id,call,called,max_call_time,notice_uri,third_id,create_time,update_time) VALUES(?,?,?,?,?,?,?,?)"""))
+		bindCallUpRecordPro.completeWith(session
+		.prepare("""INSERT INTO call_up_record(id,call,called,max_call_time,notice_uri,third_id,create_time,update_time) VALUES(?,?,?,?,?,?,?,?)"""))
 		//绑定关系SQL => 30min存活时间
-		bindRelationPro.completeWith(session.prepare("""INSERT INTO binding_relation(call_up_record_id,call,called,third_id) VALUES (?,?,?,?) USING TTL 1800"""))
+		bindRelationPro
+		.completeWith(session.prepare("""INSERT INTO binding_relation(call_up_record_id,call,called,third_id) VALUES (?,?,?,?) USING TTL 1800"""))
 
 		Future(Done)
 	}
@@ -90,7 +92,7 @@ extends ReadSideProcessor[CallUpRecordEvent] with SLF4JLogging
 	private def getCluster = session.underlying.map(_.getCluster)
 
 	//编码器列表
-	private val codecs = Seq(OptionCodec(LongCodec),OptionCodec[String],OptionCodec[Instant])
+	private val codecs = Seq(OptionCodec(LongCodec), OptionCodec[String], OptionCodec[Instant])
 
 	//绑定电话关系
 	private def bind(event: EventStreamElement[Bound]) =
@@ -98,7 +100,7 @@ extends ReadSideProcessor[CallUpRecordEvent] with SLF4JLogging
 		log.info("持久化绑定绑定到读边")
 		val cmd = event.event.cmd
 		for
-		{
+			{
 			//通话记录插入
 			a <- bindCallUpRecordPro.future.map
 			{

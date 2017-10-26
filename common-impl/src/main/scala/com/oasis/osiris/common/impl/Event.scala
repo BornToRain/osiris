@@ -2,8 +2,8 @@ package com.oasis.osiris.common.impl
 
 import com.lightbend.lagom.scaladsl.persistence.{AggregateEvent, AggregateEventTag}
 import com.oasis.osiris.common.impl.CallUpRecordCommand._
-import play.api.libs.json.{Format, Json}
 import com.oasis.osiris.tool.JSONTool._
+import play.api.libs.json.{Format, Json}
 
 /**
 	* 领域事件
@@ -31,12 +31,15 @@ object CallUpRecordEvent
 	//挂断事件
 	case object HungUp extends CallUpRecordEvent
 	{
-		implicit val format:Format[HungUp.type ] = singletonFormat(HungUp)
+		implicit val format: Format[HungUp.type] = singletonFormat(HungUp)
 	}
 
 	//更新时间
-	case class Updated(cmd:Update) extends CallUpRecordEvent
+	case class Updated(cmd: Update) extends CallUpRecordEvent
+
+	object Updated extends CallUpRecordEvent
 	{
-		implicit val format:Format[Updated] = Json.format
+		implicit val format: Format[Updated] = Json.format
 	}
+
 }

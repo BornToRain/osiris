@@ -5,6 +5,7 @@ import com.lightbend.lagom.scaladsl.persistence.PersistentEntityRegistry
 import com.lightbend.lagom.scaladsl.server.ServerServiceCall
 import com.oasis.osiris.common.api.CommonService
 import com.oasis.osiris.common.impl.CallUpRecordCommand._
+import com.oasis.osiris.tool.functional.Lift.ops._
 import com.oasis.osiris.tool.{Api, IdWorker, Restful}
 
 import scala.concurrent.ExecutionContext
@@ -26,14 +27,13 @@ class CommonServiceImpl
 		for
 		{
 			//Id生成器
-			id <- IdWorker.liftF()
+			id <- IdWorker.liftF
 			//绑定命令
 			cmd <- Bind(id, data.thirdId, data.call, data.called, data.maxCallTime, data.noticeUri).liftF
 			//发送绑定命令
 			_ <- refFor(id).ask(cmd)
 			//Http201响应
-			result <- Restful.created(request)(id)
-		} yield result
+		} yield Restful.created(request)(id)
 	})
 
 	override def hangUpCallUpRecord(id: String) = v2(ServerServiceCall
@@ -44,8 +44,7 @@ class CommonServiceImpl
 			//发出挂断命令
 			_ <- refFor(id).ask(HangUp)
 			//Http204响应
-			result <- Restful.noContent
-		} yield result
+		} yield Restful.noContent
 	})
 
 	override def calledCallUpRecord(mobile: String) = v2(ServerServiceCall
@@ -74,20 +73,22 @@ class CommonServiceImpl
 			{
 				log.info("通话事件推送更新回调")
 				log.info("+---------------------------------------------------------------------------------------------------------------------------+")
-				param.foreach{ case (k, v) => log.info(s" $k => $v") }
+				param.foreach { case (k, v) => log.info(s" $k => $v") }
 				log.info("+---------------------------------------------------------------------------------------------------------------------------+")
 				//Map参数构建更新命令
-				Update.fromMap(param).liftF
-			}
-			id <- bindingRelationRepository.getByPK(cmd.call).collect
+				Update.fromMap(param)
+			}.liftF
+			//电话绑定关系
+			id <- bindingRelationRepository.getByPK(cmd.call).map
 			{
 				case Some((_, id)) => id
-			}.liftF
+				//404 NotFound
+				case _ => throw NotFound(s"绑定关系不存在")
+			}
 			//发送更新命令
-			_ <- id.map(refFor(_).ask(cmd)).liftF
+			_ <- refFor(id).ask(cmd)
 			//Http200响应
-			result <- Restful.ok
-		} yield result
+		} yield Restful.ok
 	})
 
 	//从QueryString获取Map集合参数
@@ -96,10 +97,9 @@ class CommonServiceImpl
 	.map(_.split("="))
 	.foldLeft(Map.empty[String, String])
 	{
-		case (map, a@Array(x, y)) if a.length == 2 => map + (x -> y)
-		case (map, _)                              => map
+		case (map, Array(x, y)) => map + (x -> y)
+		case (map, _)           => map
 	}
-
 
 	private def refFor(id: String) = registry.refFor[CallUpRecordEntity](id)
 

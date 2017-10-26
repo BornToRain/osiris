@@ -117,10 +117,5 @@ object IdWorker
 
 	def nextId: String = flowIdWorker.nextId + ""
 
-	//将ID升格成Future
-	def liftF(id: String = "")(implicit ec: ExecutionContext) = id match
-	{
-		case "" => Future(nextId)
-		case _  => Future(id)
-	}
+	def liftF(implicit ec: ExecutionContext) = Future(nextId)
 }

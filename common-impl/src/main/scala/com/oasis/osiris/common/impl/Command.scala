@@ -40,7 +40,7 @@ object CallUpRecordCommand
 	(
 		id: Option[String],
 		call: String,
-		called:String,
+		called: String,
 		callType: String,
 		ringTime: Option[Instant],
 		beginTime: Option[Instant],
@@ -50,25 +50,27 @@ object CallUpRecordCommand
 		recordFile: Option[String],
 		fileServer: Option[String],
 		callId: Option[String],
-		updateTime:Instant = Instant.now
-	) extends CallUpRecordCommand[Done]
+		updateTime: Instant = Instant.now
+	) extends CallUpRecordCommand[Option[CallUpRecord]]
 
 	object Update
 	{
 		implicit val format: Format[Update] = Json.format
 
 		//map转case class
-		def fromMap(map:Map[String,String]) =
+		def fromMap(map: Map[String, String]) =
 		{
 			val ringTime = map.get("Ring").map(DateTool.toInstant)
 			val beginTime = map.get("Begin").map(DateTool.toInstant)
 			val endTime = map.get("End").map(DateTool.toInstant)
 			val status = CallStatus.withName(map("State"))
-			val eventStatus =CallEventStatus.withName(map("CallState"))
+			val eventStatus = CallEventStatus.withName(map("CallState"))
 
-			apply(map.get("ActionID"),map("CallNo"),map("CalledNo"),map("CallType"),ringTime,beginTime,endTime,status,eventStatus,map.get("RecordFile"),
-				map.get("FileServer"),map.get("CallID"))
+			apply(map.get("ActionID"), map("CallNo"), map("CalledNo"), map("CallType"), ringTime, beginTime, endTime, status, eventStatus,
+				map.get("RecordFile"),
+				map.get("FileServer"), map.get("CallID"))
 		}
 	}
+
 }
 

@@ -42,6 +42,7 @@ case class CallUpRecordState
 		eventStatus = Some(event.cmd.eventStatus),
 		data = this.data.map(_.update(event))
 	)
+
 }
 
 object CallUpRecordState
