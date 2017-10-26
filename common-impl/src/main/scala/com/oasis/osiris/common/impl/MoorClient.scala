@@ -1,7 +1,5 @@
 package com.oasis.osiris.common.impl
 
-import javax.inject.Inject
-
 import com.oasis.osiris.common.impl.MoorRequest.HangUp
 import com.oasis.osiris.tool.functional.Lift.ops._
 import com.oasis.osiris.tool.{DateTool, EncryptionTool}

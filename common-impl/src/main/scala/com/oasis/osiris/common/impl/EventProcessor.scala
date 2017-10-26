@@ -22,8 +22,8 @@ import com.oasis.osiris.tool.functional.Lift.ops._
 class CallUpRecordEventProcessor(session: CassandraSession, readSide: CassandraReadSide)(implicit ec: ExecutionContext)
 extends ReadSideProcessor[CallUpRecordEvent] with SLF4JLogging
 {
-	private val bindCallUpRecordPro = Promise[PreparedStatement]
-	private val bindRelationPro     = Promise[PreparedStatement]
+	private[this] val bindCallUpRecordPro = Promise[PreparedStatement]
+	private[this] val bindRelationPro     = Promise[PreparedStatement]
 
 	override def aggregateTags = CallUpRecordEvent.tag.allTags
 	override def buildHandler = readSide.builder[CallUpRecordEvent]("callUpRecordEventOffSet")
