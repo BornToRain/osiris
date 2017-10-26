@@ -37,7 +37,6 @@ lazy val `common-api` = project("common-api")
 .settings(
 	name := "common-api",
 	libraryDependencies ++= Seq(
-		Library.simulacrum,
 		lagomScaladslApi
 	)
 )
@@ -50,7 +49,6 @@ lazy val `common-impl` = project("common-impl")
 	name := "common-impl",
 	libraryDependencies ++= Seq(
 		Library.macwire,
-		Library.simulacrum,
 		lagomScaladslServer,
 		lagomScaladslPersistenceCassandra
 	)

@@ -15,6 +15,7 @@ import scala.concurrent.ExecutionContext
 	*/
 class CommonServiceImpl
 (
+	moor:MoorClient,
 	registry: PersistentEntityRegistry,
 	callUpRecordRepository: CallUpRecordRepository,
 	bindingRelationRepository: BindingRelationRepository
@@ -24,6 +25,18 @@ class CommonServiceImpl
 	override def bindCallUpRecord = v2(ServerServiceCall
 	{
 		(request, data) =>
+		moor.hangUP(MoorRequest.HangUp("TEst", "ss", "11")).map
+		{
+			d =>
+			println(d)
+			d.allHeaders.foreach
+			{
+				s =>
+				println(s._1)
+				s._2.foreach(println)
+			}
+			println(d.body)
+		}
 		for
 		{
 			//Id生成器

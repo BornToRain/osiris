@@ -42,5 +42,7 @@ with AhcWSComponents
 	persistentEntityRegistry.register(wire[CallUpRecordEntity])
 	//注册事件处理
 	readSide.register(wire[CallUpRecordEventProcessor])
+
+	lazy val moorClient:MoorClient = wire[MoorClient]
 }
 

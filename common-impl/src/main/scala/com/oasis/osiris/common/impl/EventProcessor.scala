@@ -13,6 +13,7 @@ import com.oasis.osiris.tool.db.Implicits._
 import com.oasis.osiris.tool.db.{LongCodec, OptionCodec}
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
+import com.oasis.osiris.tool.functional.Lift.ops._
 
 /**
 	* 领域事件处理
@@ -33,7 +34,7 @@ extends ReadSideProcessor[CallUpRecordEvent] with SLF4JLogging
 
 	//数据库表创建
 	private def createTable = for
-		{
+	{
 		//通话记录表
 		_ <- session.executeCreateTable
 		{
@@ -97,10 +98,10 @@ extends ReadSideProcessor[CallUpRecordEvent] with SLF4JLogging
 	//绑定电话关系
 	private def bind(event: EventStreamElement[Bound]) =
 	{
-		log.info("持久化绑定绑定到读边")
+		log.info("持久化电话绑定关系到读边")
 		val cmd = event.event.cmd
 		for
-			{
+		{
 			//通话记录插入
 			a <- bindCallUpRecordPro.future.map
 			{

@@ -1,60 +1,65 @@
 package com.oasis.osiris.common.impl
 
-import play.api.libs.ws.WSClient
+import javax.inject.Inject
 
-sealed trait MoorRequest[T]
+import com.oasis.osiris.common.impl.MoorRequest.HangUp
+import com.oasis.osiris.tool.functional.Lift.ops._
+import com.oasis.osiris.tool.{DateTool, EncryptionTool}
+import com.typesafe.config.ConfigFactory
+import play.api.http.HeaderNames
+import play.api.libs.json.{Format, Json, Writes}
+import play.api.libs.ws._
+
+import scala.concurrent.ExecutionContext
+
+sealed trait MoorRequest
 
 object MoorRequest
 {
+	//挂断请求
+	case class HangUp(CallId: String, Agent: String, ActionID: String)
+
+	object HangUp
+	{
+		implicit val format: Format[HangUp] = Json.format
+	}
+
+}
+
+class MoorClient(ws: WSClient)(implicit ec: ExecutionContext)
+{
+	/**
+		* 容联七陌鉴权 请求头部分
+		* Base64编码(账户Id+冒号+时间戳)
+		*/
+	private[this] def authenticationHeader(timeStamp: String) = EncryptionTool.base64(s"${MoorClient.account }:$timeStamp")
+
+	/**
+		* 容联七陌鉴权 请求参数部分
+		* MD5编码(帐号Id+帐号APISecret+时间戳)
+		* 转大写
+		*/
+	private[this] def authenticationParameter(timeStamp: String) = EncryptionTool.md5(s"${MoorClient.account }${MoorClient.secret }$timeStamp").toUpperCase
+
+	private[this] def post[T](uri: String)(data:T)(implicit w:Writes[T]) = for
+	{
+		timeStamp <- DateTool.datetimeStamp.liftF
+		auth <- authenticationHeader(timeStamp).liftF
+		sig <- authenticationParameter(timeStamp).liftF
+		post <- ws.url(s"${MoorClient.baseUri}$uri")
+		.withQueryString("sig" -> sig)
+		.withHeaders(HeaderNames.AUTHORIZATION -> auth)
+		.post(Json.toJson(data))
+	} yield post
 
 	//挂断请求
-	case class HangUp(CallId: String, Agent: String, ActionID: String) extends MoorRequest[String]
+	def hangUP(request: HangUp) = post(s"v20160818/call/hangup/${MoorClient.account }")(request)
 
-//	implicit def liftF[T](fa: MoorRequest[T]): Future[MoorRequest[T]] = Future(fa)
 }
 
-class MoorClient(baseUri: String)(ws: WSClient)(config: MoorConfiguration)
+object MoorClient
 {
-	def hangUp = ws.url(baseUri + "v20160818/call/hangup/").get
-
-//	def test = for
-//		{
-//			a <- HangUp("","","")
-//		}yield a
+	lazy val account = ConfigFactory.load.getString("account")
+	lazy val secret  = ConfigFactory.load.getString("secret")
+	lazy val baseUri = "http://apis.7moor.com/"
 }
-
-class MoorConfiguration()
-
-//sealed trait Calc[+A]
-//2 object Calc {
-//	3   case class Push(value: Int) extends Calc[Unit]
-//	4   case class Add() extends Calc[Unit]
-//	5   case class Mul() extends Calc[Unit]
-//	6   case class Div() extends Calc[Unit]
-//	7   case class Sub() extends Calc[Unit]
-//	8   implicit def calcToFree[A](ca: Calc[A]) = Free.liftFC(ca)
-//	9 }
-//10 import Calc._
-//11 val ast = for {
-//12   _ <- Push(23)
-//13   _ <- Push(3)
-//14   _ <- Add()
-//15   _ <- Push(5)
-//16   _ <- Mul()
-//17 } yield ()
-
-//class MoorClient(ws: WSClient, uri: String)
-//{
-//	@Inject
-//	def this(ws: WSClient) = this(ws, "http://apis.7moor.com/")
-//
-//	def hangUp(request: HangUp) =
-//	{
-//		ws.url(uri + "v20160818/call/hangup/")
-//	}
-//}
-//
-//class MoorConfigure
-//{
-//
-//}
