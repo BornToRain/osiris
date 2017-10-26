@@ -88,11 +88,8 @@ class CommonServiceImpl
 			}
 			//发送更新命令
 			data <- refFor(id).ask(cmd)
-//			d <- data.withFilter
-//			{
-//				case CallUpRecord(_,_,_,_,_,_,_,_,_,_,Some(_),_,_,_,_) => true
-//					case _ => false
-//			}.map(d => )
+			_ <- data.withFilter(_.noticeUri.isDefined)
+			.map(d => d)
 			//Http200响应
 		} yield Restful.ok
 	})

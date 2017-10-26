@@ -42,9 +42,9 @@ class MoorClient(ws: WSClient)(implicit ec: ExecutionContext)
 	private[this] def post[T](uri: String)(data:T)(implicit w:Writes[T]) = for
 	{
 		timeStamp <- DateTool.datetimeStamp.liftF
-		auth <- authenticationHeader(timeStamp).liftF
-		sig <- authenticationParameter(timeStamp).liftF
-		post <- ws.url(s"${MoorClient.baseUri}$uri")
+		auth 			<- authenticationHeader(timeStamp).liftF
+		sig				<- authenticationParameter(timeStamp).liftF
+		post 			<- ws.url(s"${MoorClient.baseUri}$uri")
 		.withQueryString("sig" -> sig)
 		.withHeaders(HeaderNames.AUTHORIZATION -> auth)
 		.post(Json.toJson(data))
