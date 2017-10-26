@@ -104,19 +104,12 @@ class IdWorker(workerId: Int, dataCenterId: Int) extends SLF4JLogging
 
 object IdWorker
 {
-	//默认一台机器一个节点
-	private val flowIdWorker = new IdWorker(1, 1)
-
-	/**
-		* 单Worker实例
-		*
-		* @return
-		*/
-	def getFlowIdWorkerInstance: IdWorker =
-		flowIdWorker
+	//默认一台机器一个节点 单Worker实例
+	private[this] val flowIdWorker = new IdWorker(1, 1)
 
 	def nextId: String = flowIdWorker.nextId + ""
 
+	//升格成Future
 	def liftF(implicit ec: ExecutionContext) = Future(nextId)
 
 }

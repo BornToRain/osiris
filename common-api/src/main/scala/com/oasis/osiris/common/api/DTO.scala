@@ -38,3 +38,16 @@ object MoorDTO
 	}
 
 }
+
+//短信
+object SmsDTO
+{
+
+	case class SmsDTO(mobile: String, smsType: String, captcha)
+
+	object SmsDTO
+	{
+		implicit val format: Format[SmsDTO] = Json.format
+	}
+
+}

@@ -33,7 +33,7 @@ extends ReadSideProcessor[CallUpRecordEvent] with SLF4JLogging
 	.build
 
 	//数据库表创建
-	private def createTable = for
+	private[this] def createTable = for
 	{
 		//通话记录表
 		_ <- session.executeCreateTable
@@ -75,7 +75,7 @@ extends ReadSideProcessor[CallUpRecordEvent] with SLF4JLogging
 	} yield Done
 
 	//SQLs
-	private def prepare =
+	private[this] def prepare =
 	{
 		//设置集群编码器
 		getCluster.map(_.getConfiguration.getCodecRegistry.register(codecs: _*))
@@ -90,13 +90,13 @@ extends ReadSideProcessor[CallUpRecordEvent] with SLF4JLogging
 	}
 
 	//当前集群
-	private def getCluster = session.underlying.map(_.getCluster)
+	private[this] def getCluster = session.underlying.map(_.getCluster)
 
 	//编码器列表
-	private val codecs = Seq(OptionCodec(LongCodec), OptionCodec[String], OptionCodec[Instant])
+	private[this] val codecs = Seq(OptionCodec(LongCodec), OptionCodec[String], OptionCodec[Instant])
 
 	//绑定电话关系
-	private def bind(event: EventStreamElement[Bound]) =
+	private[this] def bind(event: EventStreamElement[Bound]) =
 	{
 		log.info("持久化电话绑定关系到读边")
 		val cmd = event.event.cmd

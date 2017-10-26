@@ -27,10 +27,10 @@ class CallUpRecordEntity extends PersistentEntity
 	//不存在状态下操作
 	def nonexistence = Actions()
 	//处理绑定命令
-	.onCommand[Bind, Done]
+	.onCommand[Bind, String]
 	{
-		//持久化绑定事件回复完成
-		case (cmd: Bind, ctx, _) => ctx.thenPersist(Bound(cmd))(_ => ctx.reply(Done))
+		//持久化绑定事件回复聚合根Id
+		case (cmd: Bind, ctx, _) => ctx.thenPersist(Bound(cmd))(_ => ctx.reply(cmd.id))
 	}
 	//处理事件
 	.onEvent

@@ -20,9 +20,16 @@ object CallUpRecordCommand
 {
 
 	//绑定命令
-	case class Bind(id: String, thirdId: Option[String], call: String, called: String, maxCallTime: Option[Long], noticeUri: Option[String],
-		createTime: Instant = Instant.now, updateTime: Instant = Instant.now)
-	extends CallUpRecordCommand[Done]
+	case class Bind(
+		id: String,
+		thirdId: Option[String],
+		call: String,
+		called: String,
+		maxCallTime: Option[Long],
+		noticeUri: Option[String],
+		createTime: Instant = Instant.now,
+		updateTime: Instant = Instant.now)
+	extends CallUpRecordCommand[String]
 
 	object Bind
 	{
@@ -73,4 +80,27 @@ object CallUpRecordCommand
 	}
 
 }
+
+//短信记录命令集
+sealed trait SmsRecordCommand[Reply] extends ReplyType[Reply]
+
+object SmsRecordCommand
+{
+
+	//创建
+	case class Create(
+		id: String,
+		mobile: String,
+		smsType: String,
+		isBusiness: Boolean,
+		createTime: Instant = Instant.now,
+		updateTime: Instant = Instant.now) extends SmsRecordCommand[String]
+
+	object Create
+	{
+		implicit val format: Format[Create] = Json.format
+	}
+
+}
+
 

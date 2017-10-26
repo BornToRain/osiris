@@ -46,27 +46,22 @@ object JSONTool
 	def singletonFormat[O](singleton: O): Format[O] = Format(singletonReads(singleton), singletonWrites)
 
 	//日期读写
-	lazy val fullDateTime = "yyyy-MM-dd HH:mm:ss"
-	lazy val formatter    = DateTimeFormatter.ofPattern(fullDateTime).withZone(ZoneId.systemDefault)
+	lazy val formatter = DateTimeFormatter.ofPattern(DateTool.FULLDATE).withZone(ZoneId.systemDefault)
 
 	implicit val instantReads: Reads[Instant] = Reads[Instant]
 	{
 		_.validate[String].map
 		{
-			s =>
-				//需要给时间添加时区才能正确解析
-			val utc = s.collect
+			//需要给时间添加时区才能正确解析
+			_.collect
 			{
 				case ' ' => 'T'
 				case s   => s
 			} + 'Z'
-			Instant.parse(utc)
 		}
+		.map(Instant.parse)
 	}
 
-	implicit val instantWrites: Writes[Instant] = Writes
-	{
-		d => JsString(formatter.format(d))
-	}
+	implicit val instantWrites: Writes[Instant] = Writes(i => JsString(formatter.format(i)))
 }
 

@@ -30,19 +30,19 @@ with AhcWSComponents
 
 	import com.softwaremill.macwire._
 
+	//注入容联七陌客户端
+	lazy val moorClient               : MoorClient                = wire[MoorClient]
 	//绑定服务
 	lazy val lagomServer              : LagomServer               = serverFor[CommonService](wire[CommonServiceImpl])
 	//注册序列化
 	lazy val jsonSerializerRegistry   : JsonSerializerRegistry    = SerializerRegistry
-	//注册通话记录仓库
+	//注入通话记录仓库
 	lazy val callUpRecordRepository   : CallUpRecordRepository    = wire[CallUpRecordRepository]
-	//注册绑定关系仓库
+	//注入绑定关系仓库
 	lazy val bindingRelationRepository: BindingRelationRepository = wire[BindingRelationRepository]
 	//注册持久化
 	persistentEntityRegistry.register(wire[CallUpRecordEntity])
 	//注册事件处理
 	readSide.register(wire[CallUpRecordEventProcessor])
-
-	lazy val moorClient:MoorClient = wire[MoorClient]
 }
 

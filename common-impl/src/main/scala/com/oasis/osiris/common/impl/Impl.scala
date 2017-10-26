@@ -4,7 +4,6 @@ import com.lightbend.lagom.scaladsl.api.transport.NotFound
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntityRegistry
 import com.lightbend.lagom.scaladsl.server.ServerServiceCall
 import com.oasis.osiris.common.api.CommonService
-import com.oasis.osiris.common.impl.CallUpRecordCommand._
 import com.oasis.osiris.tool.functional.Lift.ops._
 import com.oasis.osiris.tool.{Api, IdWorker, Restful}
 import play.api.libs.json.Json
@@ -31,7 +30,7 @@ class CommonServiceImpl
 			//Id生成器
 			id <- IdWorker.liftF
 			//绑定命令
-			cmd <- Bind(id, data.thirdId, data.call, data.called, data.maxCallTime, data.noticeUri).liftF
+			cmd <- CallUpRecordCommand.Bind(id, data.thirdId, data.call, data.called, data.maxCallTime, data.noticeUri).liftF
 			//发送绑定命令
 			_ <- refFor(id).ask(cmd)
 			//Http201响应
@@ -44,7 +43,7 @@ class CommonServiceImpl
 		for
 		{
 			//发出挂断命令
-			_ <- refFor(id).ask(HangUp)
+			_ <- refFor(id).ask(CallUpRecordCommand.HangUp)
 			//Http204响应
 		} yield Restful.noContent
 	})
@@ -78,7 +77,7 @@ class CommonServiceImpl
 				param.foreach { case (k, v) => log.info(s" $k => $v") }
 				log.info("+---------------------------------------------------------------------------------------------------------------------------+")
 				//Map参数构建更新命令
-				Update.fromMap(param)
+				CallUpRecordCommand.Update.fromMap(param)
 			}.liftF
 			//电话绑定关系
 			id <- bindingRelationRepository.getByPK(cmd.call).map
@@ -99,7 +98,7 @@ class CommonServiceImpl
 	})
 
 	//从QueryString获取Map集合参数
-	private def getParam(query: String) = query
+	private[this] def getParam(query: String) = query
 	.split("&")
 	.map(_.split("="))
 	.foldLeft(Map.empty[String, String])
@@ -108,6 +107,16 @@ class CommonServiceImpl
 		case (map, _)           => map
 	}
 
-	private def refFor(id: String) = registry.refFor[CallUpRecordEntity](id)
+	override def sms = v2(ServerServiceCall
+	{
+		data =>
+		for
+		{
+			id <- IdWorker.liftF
+			cmd <- SmsRecordCommand.Create(id, data.mobile, data.smsType, isBusiness = false).liftF
+			_ <- refFor(id)
+		} yield Restful.ok
+	})
 
+	private[this] def refFor(id: String) = registry.refFor[CallUpRecordEntity](id)
 }
