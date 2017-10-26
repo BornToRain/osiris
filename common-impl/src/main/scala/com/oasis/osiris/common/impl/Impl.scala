@@ -7,6 +7,7 @@ import com.oasis.osiris.common.api.CommonService
 import com.oasis.osiris.common.impl.CallUpRecordCommand._
 import com.oasis.osiris.tool.functional.Lift.ops._
 import com.oasis.osiris.tool.{Api, IdWorker, Restful}
+import play.api.libs.json.Json
 
 import scala.concurrent.ExecutionContext
 
@@ -25,18 +26,6 @@ class CommonServiceImpl
 	override def bindCallUpRecord = v2(ServerServiceCall
 	{
 		(request, data) =>
-		moor.hangUP(MoorRequest.HangUp("TEst", "ss", "11")).map
-		{
-			d =>
-			println(d)
-			d.allHeaders.foreach
-			{
-				s =>
-				println(s._1)
-				s._2.foreach(println)
-			}
-			println(d.body)
-		}
 		for
 		{
 			//Id生成器
@@ -99,7 +88,12 @@ class CommonServiceImpl
 				case _ => throw NotFound(s"绑定关系不存在")
 			}
 			//发送更新命令
-			_ <- refFor(id).ask(cmd)
+			data <- refFor(id).ask(cmd)
+//			d <- data.withFilter
+//			{
+//				case CallUpRecord(_,_,_,_,_,_,_,_,_,_,Some(_),_,_,_,_) => true
+//					case _ => false
+//			}.map(d => )
 			//Http200响应
 		} yield Restful.ok
 	})

@@ -53,7 +53,7 @@ class MoorClient(ws: WSClient)(implicit ec: ExecutionContext)
 	} yield post
 
 	//挂断请求
-	def hangUP(request: HangUp) = post(s"v20160818/call/hangup/${MoorClient.account }")(request)
+	def hangUp(request: HangUp) = post(s"v20160818/call/hangup/${MoorClient.account }")(request)
 
 }
 
