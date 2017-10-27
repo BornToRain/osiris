@@ -18,38 +18,33 @@ package com.oasis.osiris.tool.db
 
 import java.nio.ByteBuffer
 
-import com.datastax.driver.core.exceptions.InvalidTypeException
 import com.datastax.driver.core.{DataType, ProtocolVersion, TypeCodec}
+import com.datastax.driver.core.exceptions.InvalidTypeException
 
 object DoubleCodec extends TypeCodec[Double](DataType.cdouble(), TypeTokens.double)
 with VersionAgnostic[Double]
 {
-
-	override def serialize(value: Double, protocolVersion: ProtocolVersion): ByteBuffer =
-		ByteBuffer.allocate(8).putDouble(0, value)
-
-	override def deserialize(bytes: ByteBuffer, protocolVersion: ProtocolVersion): Double =
-	{
-		if (bytes == null || bytes.remaining == 0) return 0
-		if (bytes.remaining != 8) throw new InvalidTypeException("Invalid 64-bits double value, expecting 8 bytes but got " + bytes.remaining)
-		bytes.getDouble(bytes.position)
-	}
-
-	override def format(value: Double): String =
-		value.toString
-
-	override def parse(value: String): Double =
-	{
-		try
-		{
-			if (value == null || value.isEmpty || value.equalsIgnoreCase("NULL")) 0
-			else value.toDouble
-		}
-		catch
-		{
-			case e: NumberFormatException =>
-			throw new InvalidTypeException( s"""Cannot parse 64-bits double value from "$value"""", e)
-		}
-	}
-
+  override def serialize(value: Double, protocolVersion: ProtocolVersion): ByteBuffer =
+    ByteBuffer.allocate(8).putDouble(0, value)
+  override def deserialize(bytes: ByteBuffer, protocolVersion: ProtocolVersion): Double =
+  {
+    if (bytes == null || bytes.remaining == 0) return 0
+    if (bytes.remaining != 8) throw new InvalidTypeException("Invalid 64-bits double value, expecting 8 bytes but got " + bytes.remaining)
+    bytes.getDouble(bytes.position)
+  }
+  override def format(value: Double): String =
+    value.toString
+  override def parse(value: String): Double =
+  {
+    try
+    {
+      if (value == null || value.isEmpty || value.equalsIgnoreCase("NULL")) 0
+      else value.toDouble
+    }
+    catch
+    {
+      case e: NumberFormatException =>
+      throw new InvalidTypeException( s"""Cannot parse 64-bits double value from "$value"""", e)
+    }
+  }
 }

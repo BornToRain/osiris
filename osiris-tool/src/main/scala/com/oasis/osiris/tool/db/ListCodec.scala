@@ -20,25 +20,20 @@ import com.datastax.driver.core._
 
 class ListCodec[E](eltCodec: TypeCodec[E])
 extends AbstractSeqCodec[E, List[E]](
-	DataType.list(eltCodec.getCqlType),
-	TypeTokens.listOf(eltCodec.getJavaType),
-	eltCodec)
+  DataType.list(eltCodec.getCqlType),
+  TypeTokens.listOf(eltCodec.getJavaType),
+  eltCodec)
 {
 }
 
 object ListCodec
 {
-
-	def apply[E](eltCodec: TypeCodec[E]): ListCodec[E] = new ListCodec[E](eltCodec)
-
-	import scala.reflect.runtime.universe._
-
-	def apply[E](implicit eltTag: TypeTag[E]): ListCodec[E] =
-	{
-		val eltCodec = TypeConversions.toCodec[E](eltTag.tpe)
-		apply(eltCodec)
-	}
-
+  def apply[E](implicit eltTag: TypeTag[E]): ListCodec[E] =
+  {
+    val eltCodec = TypeConversions.toCodec[E](eltTag.tpe)
+    apply(eltCodec)
+  }
+  def apply[E](eltCodec: TypeCodec[E]): ListCodec[E] = new ListCodec[E](eltCodec)
 }
 
 

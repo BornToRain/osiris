@@ -20,25 +20,20 @@ import com.datastax.driver.core._
 
 class SetCodec[E](eltCodec: TypeCodec[E])
 extends AbstractSetCodec[E, Set[E]](
-	DataType.set(eltCodec.getCqlType),
-	TypeTokens.setOf(eltCodec.getJavaType),
-	eltCodec)
+  DataType.set(eltCodec.getCqlType),
+  TypeTokens.setOf(eltCodec.getJavaType),
+  eltCodec)
 {
 }
 
 object SetCodec
 {
-
-	def apply[E](eltCodec: TypeCodec[E]): SetCodec[E] = new SetCodec[E](eltCodec)
-
-	import scala.reflect.runtime.universe._
-
-	def apply[E](implicit eltTag: TypeTag[E]): SetCodec[E] =
-	{
-		val eltCodec = TypeConversions.toCodec[E](eltTag.tpe)
-		apply(eltCodec)
-	}
-
+  def apply[E](implicit eltTag: TypeTag[E]): SetCodec[E] =
+  {
+    val eltCodec = TypeConversions.toCodec[E](eltTag.tpe)
+    apply(eltCodec)
+  }
+  def apply[E](eltCodec: TypeCodec[E]): SetCodec[E] = new SetCodec[E](eltCodec)
 }
 
 

@@ -18,38 +18,33 @@ package com.oasis.osiris.tool.db
 
 import java.nio.ByteBuffer
 
+import com.datastax.driver.core.{DataType, ProtocolVersion, TypeCodec}
 import com.datastax.driver.core.exceptions.InvalidTypeException
 import com.datastax.driver.core.utils.Bytes
-import com.datastax.driver.core.{DataType, ProtocolVersion, TypeCodec}
 import com.google.common.reflect.TypeToken
 
 object BigIntCodec extends TypeCodec[BigInt](DataType.varint(), TypeToken.of(classOf[BigInt]))
 with VersionAgnostic[BigInt]
 {
-
-	override def serialize(value: BigInt, protocolVersion: ProtocolVersion): ByteBuffer =
-		if (value == null) null
-		else ByteBuffer.wrap(value.toByteArray)
-
-	override def deserialize(bytes: ByteBuffer, protocolVersion: ProtocolVersion): BigInt =
-		if (bytes == null || bytes.remaining == 0) null
-		else BigInt(Bytes.getArray(bytes))
-
-	override def format(value: BigInt): String = if (value == null) "NULL"
-	else value.toString
-
-	override def parse(value: String): BigInt =
-	{
-		try
-		{
-			if (value == null || value.isEmpty || value.equalsIgnoreCase("NULL")) null
-			else BigInt(value)
-		}
-		catch
-		{
-			case e: NumberFormatException =>
-			throw new InvalidTypeException( s"""Cannot parse varint value from "$value"""", e)
-		}
-	}
-
+  override def serialize(value: BigInt, protocolVersion: ProtocolVersion): ByteBuffer =
+    if (value == null) null
+    else ByteBuffer.wrap(value.toByteArray)
+  override def deserialize(bytes: ByteBuffer, protocolVersion: ProtocolVersion): BigInt =
+    if (bytes == null || bytes.remaining == 0) null
+    else BigInt(Bytes.getArray(bytes))
+  override def format(value: BigInt): String = if (value == null) "NULL"
+  else value.toString
+  override def parse(value: String): BigInt =
+  {
+    try
+    {
+      if (value == null || value.isEmpty || value.equalsIgnoreCase("NULL")) null
+      else BigInt(value)
+    }
+    catch
+    {
+      case e: NumberFormatException =>
+      throw new InvalidTypeException( s"""Cannot parse varint value from "$value"""", e)
+    }
+  }
 }

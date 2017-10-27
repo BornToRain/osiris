@@ -18,37 +18,32 @@ package com.oasis.osiris.tool.db
 
 import java.nio.ByteBuffer
 
-import com.datastax.driver.core.exceptions.InvalidTypeException
 import com.datastax.driver.core.{DataType, ProtocolVersion, TypeCodec}
+import com.datastax.driver.core.exceptions.InvalidTypeException
 
 object ShortCodec extends TypeCodec[Short](DataType.smallint(), TypeTokens.short)
 with VersionAgnostic[Short]
 {
-
-	override def serialize(value: Short, protocolVersion: ProtocolVersion): ByteBuffer =
-		ByteBuffer.allocate(2).putShort(0, value)
-
-	override def deserialize(bytes: ByteBuffer, protocolVersion: ProtocolVersion): Short =
-	{
-		if (bytes == null || bytes.remaining == 0) return 0
-		if (bytes.remaining != 2) throw new InvalidTypeException("Invalid 16-bits short value, expecting 2 bytes but got " + bytes.remaining)
-		bytes.getShort(bytes.position)
-	}
-
-	override def format(value: Short): String = value.toString
-
-	override def parse(value: String): Short =
-	{
-		try
-		{
-			if (value == null || value.isEmpty || value.equalsIgnoreCase("NULL")) 0
-			else value.toShort
-		}
-		catch
-		{
-			case e: NumberFormatException =>
-			throw new InvalidTypeException( s"""Cannot parse 16-bits short value from "$value"""", e)
-		}
-	}
-
+  override def serialize(value: Short, protocolVersion: ProtocolVersion): ByteBuffer =
+    ByteBuffer.allocate(2).putShort(0, value)
+  override def deserialize(bytes: ByteBuffer, protocolVersion: ProtocolVersion): Short =
+  {
+    if (bytes == null || bytes.remaining == 0) return 0
+    if (bytes.remaining != 2) throw new InvalidTypeException("Invalid 16-bits short value, expecting 2 bytes but got " + bytes.remaining)
+    bytes.getShort(bytes.position)
+  }
+  override def format(value: Short): String = value.toString
+  override def parse(value: String): Short =
+  {
+    try
+    {
+      if (value == null || value.isEmpty || value.equalsIgnoreCase("NULL")) 0
+      else value.toShort
+    }
+    catch
+    {
+      case e: NumberFormatException =>
+      throw new InvalidTypeException( s"""Cannot parse 16-bits short value from "$value"""", e)
+    }
+  }
 }

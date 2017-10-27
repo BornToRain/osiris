@@ -20,26 +20,21 @@ import com.datastax.driver.core._
 
 class MapCodec[K, V](keyCodec: TypeCodec[K], valueCodec: TypeCodec[V])
 extends AbstractMapCodec[K, V, Map[K, V]](
-	DataType.map(keyCodec.getCqlType, valueCodec.getCqlType),
-	TypeTokens.mapOf(keyCodec.getJavaType, valueCodec.getJavaType),
-	keyCodec,
-	valueCodec)
+  DataType.map(keyCodec.getCqlType, valueCodec.getCqlType),
+  TypeTokens.mapOf(keyCodec.getJavaType, valueCodec.getJavaType),
+  keyCodec,
+  valueCodec)
 {
 }
 
 object MapCodec
 {
-
-	def apply[K, V](keyCodec: TypeCodec[K], valueCodec: TypeCodec[V]): MapCodec[K, V] =
-		new MapCodec[K, V](keyCodec, valueCodec)
-
-	import scala.reflect.runtime.universe._
-
-	def apply[K, V](implicit keyTag: TypeTag[K], valueTag: TypeTag[V]): MapCodec[K, V] =
-	{
-		val keyCodec = TypeConversions.toCodec[K](keyTag.tpe)
-		val valueCodec = TypeConversions.toCodec[V](valueTag.tpe)
-		apply(keyCodec, valueCodec)
-	}
-
+  def apply[K, V](implicit keyTag: TypeTag[K], valueTag: TypeTag[V]): MapCodec[K, V] =
+  {
+    val keyCodec = TypeConversions.toCodec[K](keyTag.tpe)
+    val valueCodec = TypeConversions.toCodec[V](valueTag.tpe)
+    apply(keyCodec, valueCodec)
+  }
+  def apply[K, V](keyCodec: TypeCodec[K], valueCodec: TypeCodec[V]): MapCodec[K, V] =
+    new MapCodec[K, V](keyCodec, valueCodec)
 }

@@ -20,11 +20,9 @@ import com.datastax.driver.core.{CodecRegistry, DataType, ProtocolVersion, Tuple
 
 object Tuples
 {
-
-	def of(types: DataType*)(implicit protocolVersion: ProtocolVersion, codecRegistry: CodecRegistry): TupleType =
-	{
-		TupleType.of(protocolVersion, codecRegistry, types: _*)
-	}
-
+  def of(types: DataType*)(implicit protocolVersion: ProtocolVersion, codecRegistry: CodecRegistry): TupleType =
+  {
+    TupleType.of(protocolVersion, codecRegistry, types: _*)
+  }
 }
 

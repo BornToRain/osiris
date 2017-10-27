@@ -18,38 +18,33 @@ package com.oasis.osiris.tool.db
 
 import java.nio.ByteBuffer
 
-import com.datastax.driver.core.exceptions.InvalidTypeException
 import com.datastax.driver.core.{DataType, ProtocolVersion, TypeCodec}
+import com.datastax.driver.core.exceptions.InvalidTypeException
 
 object FloatCodec extends TypeCodec[Float](DataType.cfloat(), TypeTokens.float)
 with VersionAgnostic[Float]
 {
-
-	override def serialize(value: Float, protocolVersion: ProtocolVersion): ByteBuffer =
-		ByteBuffer.allocate(4).putFloat(0, value)
-
-	override def deserialize(bytes: ByteBuffer, protocolVersion: ProtocolVersion): Float =
-	{
-		if (bytes == null || bytes.remaining == 0) return 0
-		if (bytes.remaining != 4) throw new InvalidTypeException("Invalid 32-bits float value, expecting 4 bytes but got " + bytes.remaining)
-		bytes.getFloat(bytes.position)
-	}
-
-	override def format(value: Float): String =
-		value.toString
-
-	override def parse(value: String): Float =
-	{
-		try
-		{
-			if (value == null || value.isEmpty || value.equalsIgnoreCase("NULL")) 0
-			else value.toFloat
-		}
-		catch
-		{
-			case e: NumberFormatException =>
-			throw new InvalidTypeException( s"""Cannot parse 32-bits float value from "$value"""", e)
-		}
-	}
-
+  override def serialize(value: Float, protocolVersion: ProtocolVersion): ByteBuffer =
+    ByteBuffer.allocate(4).putFloat(0, value)
+  override def deserialize(bytes: ByteBuffer, protocolVersion: ProtocolVersion): Float =
+  {
+    if (bytes == null || bytes.remaining == 0) return 0
+    if (bytes.remaining != 4) throw new InvalidTypeException("Invalid 32-bits float value, expecting 4 bytes but got " + bytes.remaining)
+    bytes.getFloat(bytes.position)
+  }
+  override def format(value: Float): String =
+    value.toString
+  override def parse(value: String): Float =
+  {
+    try
+    {
+      if (value == null || value.isEmpty || value.equalsIgnoreCase("NULL")) 0
+      else value.toFloat
+    }
+    catch
+    {
+      case e: NumberFormatException =>
+      throw new InvalidTypeException( s"""Cannot parse 32-bits float value from "$value"""", e)
+    }
+  }
 }

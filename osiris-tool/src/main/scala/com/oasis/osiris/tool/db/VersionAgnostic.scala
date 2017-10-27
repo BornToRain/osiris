@@ -25,12 +25,9 @@ import scala.reflect.ClassTag
 trait VersionAgnostic[T]
 {
 
-	this: TypeCodec[T] =>
-
-	def serialize(value: T)(implicit protocolVersion: ProtocolVersion, marker: ClassTag[T]): ByteBuffer =
-		this.serialize(value, protocolVersion)
-
-	def deserialize(bytes: ByteBuffer)(implicit protocolVersion: ProtocolVersion, marker: ClassTag[T]): T =
-		this.deserialize(bytes, protocolVersion)
-
+  this: TypeCodec[T] =>
+  def serialize(value: T)(implicit protocolVersion: ProtocolVersion, marker: ClassTag[T]): ByteBuffer =
+    this.serialize(value, protocolVersion)
+  def deserialize(bytes: ByteBuffer)(implicit protocolVersion: ProtocolVersion, marker: ClassTag[T]): T =
+    this.deserialize(bytes, protocolVersion)
 }

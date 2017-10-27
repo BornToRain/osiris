@@ -20,25 +20,20 @@ import com.datastax.driver.core._
 
 class VectorCodec[E](eltCodec: TypeCodec[E])
 extends AbstractSeqCodec[E, Vector[E]](
-	DataType.list(eltCodec.getCqlType),
-	TypeTokens.vectorOf(eltCodec.getJavaType),
-	eltCodec)
+  DataType.list(eltCodec.getCqlType),
+  TypeTokens.vectorOf(eltCodec.getJavaType),
+  eltCodec)
 {
 }
 
 object VectorCodec
 {
-
-	def apply[E](eltCodec: TypeCodec[E]): VectorCodec[E] = new VectorCodec[E](eltCodec)
-
-	import scala.reflect.runtime.universe._
-
-	def apply[E](implicit eltTag: TypeTag[E]): VectorCodec[E] =
-	{
-		val eltCodec = TypeConversions.toCodec[E](eltTag.tpe)
-		apply(eltCodec)
-	}
-
+  def apply[E](implicit eltTag: TypeTag[E]): VectorCodec[E] =
+  {
+    val eltCodec = TypeConversions.toCodec[E](eltTag.tpe)
+    apply(eltCodec)
+  }
+  def apply[E](eltCodec: TypeCodec[E]): VectorCodec[E] = new VectorCodec[E](eltCodec)
 }
 
 

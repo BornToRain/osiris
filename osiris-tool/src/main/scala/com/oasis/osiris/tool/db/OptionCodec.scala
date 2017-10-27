@@ -22,50 +22,38 @@ import com.datastax.driver.core.{DataType, ProtocolVersion, TypeCodec}
 import com.google.common.reflect.TypeToken
 
 class OptionCodec[T](
-	cqlType: DataType,
-	javaType: TypeToken[Option[T]],
-	innerCodec: TypeCodec[T])
+  cqlType   : DataType,
+  javaType  : TypeToken[Option[T]],
+  innerCodec: TypeCodec[T])
 extends TypeCodec[Option[T]](cqlType, javaType)
 with VersionAgnostic[Option[T]]
 {
-
-	def this(innerCodec: TypeCodec[T])
-	{
-		this(innerCodec.getCqlType, TypeTokens.optionOf(innerCodec.getJavaType), innerCodec)
-	}
-
-	override def serialize(value: Option[T], protocolVersion: ProtocolVersion): ByteBuffer =
-		if (value.isEmpty) OptionCodec.empty.duplicate
-		else innerCodec.serialize(value.get, protocolVersion)
-
-	override def deserialize(bytes: ByteBuffer, protocolVersion: ProtocolVersion): Option[T] =
-		if (bytes == null || bytes.remaining() == 0) None
-		else Option(innerCodec.deserialize(bytes, protocolVersion))
-
-	override def format(value: Option[T]): String =
-		if (value.isEmpty) "NULL"
-		else innerCodec.format(value.get)
-
-	override def parse(value: String): Option[T] =
-		if (value == null || value.isEmpty || value.equalsIgnoreCase("NULL")) None
-		else Option(innerCodec.parse(value))
-
+  def this(innerCodec: TypeCodec[T])
+  {
+    this(innerCodec.getCqlType, TypeTokens.optionOf(innerCodec.getJavaType), innerCodec)
+  }
+  override def serialize(value: Option[T], protocolVersion: ProtocolVersion): ByteBuffer =
+    if (value.isEmpty) OptionCodec.empty.duplicate
+    else innerCodec.serialize(value.get, protocolVersion)
+  override def deserialize(bytes: ByteBuffer, protocolVersion: ProtocolVersion): Option[T] =
+    if (bytes == null || bytes.remaining() == 0) None
+    else Option(innerCodec.deserialize(bytes, protocolVersion))
+  override def format(value: Option[T]): String =
+    if (value.isEmpty) "NULL"
+    else innerCodec.format(value.get)
+  override def parse(value: String): Option[T] =
+    if (value == null || value.isEmpty || value.equalsIgnoreCase("NULL")) None
+    else Option(innerCodec.parse(value))
 }
 
 object OptionCodec
 {
-
-	private val empty = ByteBuffer.allocate(0)
-
-	def apply[T](innerCodec: TypeCodec[T]): OptionCodec[T] =
-		new OptionCodec[T](innerCodec)
-
-	import scala.reflect.runtime.universe._
-
-	def apply[T](implicit innerTag: TypeTag[T]): OptionCodec[T] =
-	{
-		val innerCodec = TypeConversions.toCodec[T](innerTag.tpe)
-		apply(innerCodec)
-	}
-
+  private val empty = ByteBuffer.allocate(0)
+  def apply[T](implicit innerTag: TypeTag[T]): OptionCodec[T] =
+  {
+    val innerCodec = TypeConversions.toCodec[T](innerTag.tpe)
+    apply(innerCodec)
+  }
+  def apply[T](innerCodec: TypeCodec[T]): OptionCodec[T] =
+    new OptionCodec[T](innerCodec)
 }

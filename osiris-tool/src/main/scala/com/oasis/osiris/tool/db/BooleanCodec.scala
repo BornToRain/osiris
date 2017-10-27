@@ -18,41 +18,35 @@ package com.oasis.osiris.tool.db
 
 import java.nio.ByteBuffer
 
-import com.datastax.driver.core.exceptions.InvalidTypeException
 import com.datastax.driver.core.{DataType, ProtocolVersion, TypeCodec}
+import com.datastax.driver.core.exceptions.InvalidTypeException
 
 object BooleanCodec extends TypeCodec[Boolean](DataType.cboolean(), TypeTokens.boolean)
 with VersionAgnostic[Boolean]
 {
-
-	private val TRUE  = ByteBuffer.wrap(Array[Byte](1))
-	private val FALSE = ByteBuffer.wrap(Array[Byte](0))
-
-	override def serialize(value: Boolean, protocolVersion: ProtocolVersion): ByteBuffer =
-		if (value) TRUE.duplicate
-		else FALSE.duplicate
-
-	override def deserialize(bytes: ByteBuffer, protocolVersion: ProtocolVersion): Boolean =
-	{
-		if (bytes == null || bytes.remaining == 0) return false
-		if (bytes.remaining != 1) throw new InvalidTypeException("Invalid boolean value, expecting 1 byte but got " + bytes.remaining)
-		bytes.get(bytes.position) != 0
-	}
-
-	override def format(value: Boolean): String = value.toString
-
-	override def parse(value: String): Boolean =
-	{
-		try
-		{
-			if (value == null || value.isEmpty || value.equalsIgnoreCase("NULL")) false
-			else value.toBoolean
-		}
-		catch
-		{
-			case e: IllegalArgumentException =>
-			throw new InvalidTypeException( s"""Cannot parse boolean value from "$value"""", e)
-		}
-	}
-
+  private val TRUE  = ByteBuffer.wrap(Array[Byte](1))
+  private val FALSE = ByteBuffer.wrap(Array[Byte](0))
+  override def serialize(value: Boolean, protocolVersion: ProtocolVersion): ByteBuffer =
+    if (value) TRUE.duplicate
+    else FALSE.duplicate
+  override def deserialize(bytes: ByteBuffer, protocolVersion: ProtocolVersion): Boolean =
+  {
+    if (bytes == null || bytes.remaining == 0) return false
+    if (bytes.remaining != 1) throw new InvalidTypeException("Invalid boolean value, expecting 1 byte but got " + bytes.remaining)
+    bytes.get(bytes.position) != 0
+  }
+  override def format(value: Boolean): String = value.toString
+  override def parse(value: String): Boolean =
+  {
+    try
+    {
+      if (value == null || value.isEmpty || value.equalsIgnoreCase("NULL")) false
+      else value.toBoolean
+    }
+    catch
+    {
+      case e: IllegalArgumentException =>
+      throw new InvalidTypeException( s"""Cannot parse boolean value from "$value"""", e)
+    }
+  }
 }

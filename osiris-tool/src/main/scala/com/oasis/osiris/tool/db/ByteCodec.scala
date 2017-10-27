@@ -18,37 +18,32 @@ package com.oasis.osiris.tool.db
 
 import java.nio.ByteBuffer
 
-import com.datastax.driver.core.exceptions.InvalidTypeException
 import com.datastax.driver.core.{DataType, ProtocolVersion, TypeCodec}
+import com.datastax.driver.core.exceptions.InvalidTypeException
 
 object ByteCodec extends TypeCodec[Byte](DataType.tinyint(), TypeTokens.byte)
 with VersionAgnostic[Byte]
 {
-
-	override def serialize(value: Byte, protocolVersion: ProtocolVersion): ByteBuffer =
-		ByteBuffer.allocate(1).put(0, value)
-
-	override def deserialize(bytes: ByteBuffer, protocolVersion: ProtocolVersion): Byte =
-	{
-		if (bytes == null || bytes.remaining == 0) return 0
-		if (bytes.remaining != 1) throw new InvalidTypeException("Invalid byte value, expecting 1 byte but got " + bytes.remaining)
-		bytes.get(bytes.position)
-	}
-
-	override def format(value: Byte): String = value.toString
-
-	override def parse(value: String): Byte =
-	{
-		try
-		{
-			if (value == null || value.isEmpty || value.equalsIgnoreCase("NULL")) 0
-			else value.toByte
-		}
-		catch
-		{
-			case e: NumberFormatException =>
-			throw new InvalidTypeException( s"""Cannot parse byte value from "$value"""", e)
-		}
-	}
-
+  override def serialize(value: Byte, protocolVersion: ProtocolVersion): ByteBuffer =
+    ByteBuffer.allocate(1).put(0, value)
+  override def deserialize(bytes: ByteBuffer, protocolVersion: ProtocolVersion): Byte =
+  {
+    if (bytes == null || bytes.remaining == 0) return 0
+    if (bytes.remaining != 1) throw new InvalidTypeException("Invalid byte value, expecting 1 byte but got " + bytes.remaining)
+    bytes.get(bytes.position)
+  }
+  override def format(value: Byte): String = value.toString
+  override def parse(value: String): Byte =
+  {
+    try
+    {
+      if (value == null || value.isEmpty || value.equalsIgnoreCase("NULL")) 0
+      else value.toByte
+    }
+    catch
+    {
+      case e: NumberFormatException =>
+      throw new InvalidTypeException( s"""Cannot parse byte value from "$value"""", e)
+    }
+  }
 }

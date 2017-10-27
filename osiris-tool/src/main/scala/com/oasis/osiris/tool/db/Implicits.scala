@@ -23,45 +23,37 @@ import com.google.common.reflect.TypeToken
 
 object Implicits
 {
+  implicit val protocolVersion = ProtocolVersion.NEWEST_SUPPORTED
+  implicit val codecRegistry   = CodecRegistry.DEFAULT_INSTANCE
 
-	implicit val protocolVersion = ProtocolVersion.NEWEST_SUPPORTED
+  import scala.reflect.runtime.universe._
 
-	implicit val codecRegistry = CodecRegistry.DEFAULT_INSTANCE
+  implicit class RowOps(val self: Row)
+  {
+    def getImplicitly[T](i: Int)(implicit typeTag: TypeTag[T]): T =
+    {
+      val javaType: reflect.Type = TypeConversions.toJavaType(typeTag.tpe)
+      self.get(i, TypeToken.of(javaType).wrap().asInstanceOf[TypeToken[T]])
+    }
+    def getImplicitly[T](name: String)(implicit typeTag: TypeTag[T]): T =
+    {
+      val javaType: reflect.Type = TypeConversions.toJavaType(typeTag.tpe)
+      self.get(name, TypeToken.of(javaType).wrap().asInstanceOf[TypeToken[T]])
+    }
+  }
 
-	import scala.reflect.runtime.universe._
-
-	implicit class RowOps(val self: Row)
-	{
-
-		def getImplicitly[T](i: Int)(implicit typeTag: TypeTag[T]): T =
-		{
-			val javaType: reflect.Type = TypeConversions.toJavaType(typeTag.tpe)
-			self.get(i, TypeToken.of(javaType).wrap().asInstanceOf[TypeToken[T]])
-		}
-
-		def getImplicitly[T](name: String)(implicit typeTag: TypeTag[T]): T =
-		{
-			val javaType: reflect.Type = TypeConversions.toJavaType(typeTag.tpe)
-			self.get(name, TypeToken.of(javaType).wrap().asInstanceOf[TypeToken[T]])
-		}
-
-	}
-
-	implicit class BoundStatementOps(val self: BoundStatement)
-	{
-
-		def setImplicitly[T](i: Int, value: T)(implicit typeTag: TypeTag[T]): BoundStatement =
-		{
-			val javaType: reflect.Type = TypeConversions.toJavaType(typeTag.tpe)
-			self.set(i, value, TypeToken.of(javaType).wrap().asInstanceOf[TypeToken[T]])
-		}
-
-		def setImplicitly[T](name: String, value: T)(implicit typeTag: TypeTag[T]): BoundStatement =
-		{
-			val javaType: reflect.Type = TypeConversions.toJavaType(typeTag.tpe)
-			self.set(name, value, TypeToken.of(javaType).wrap().asInstanceOf[TypeToken[T]])
-		}
-
-	}
+  implicit class BoundStatementOps(val self: BoundStatement)
+  {
+    def setImplicitly[T](i: Int, value: T)(implicit typeTag: TypeTag[T]): BoundStatement =
+    {
+      val javaType: reflect.Type = TypeConversions.toJavaType(typeTag.tpe)
+      self.set(i, value, TypeToken.of(javaType).wrap().asInstanceOf[TypeToken[T]])
+    }
+    def setImplicitly[T](name: String, value: T)(implicit typeTag: TypeTag[T]): BoundStatement =
+    {
+      val javaType: reflect.Type = TypeConversions.toJavaType(typeTag.tpe)
+      self.set(name, value, TypeToken.of(javaType).wrap().asInstanceOf[TypeToken[T]])
+    }
+  }
 
 }

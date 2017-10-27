@@ -17,11 +17,10 @@ package com.oasis.osiris.tool
  */
 
 /**
-	*
-	*/
+  *
+  */
 package object db
 {
-	type Seq[+A] = collection.immutable.Seq[A]
-
-	val Seq = collection.immutable.Seq
+  type Seq[+A] = collection.immutable.Seq[A]
+  val Seq = collection.immutable.Seq
 }
