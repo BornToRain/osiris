@@ -28,11 +28,13 @@ extends AbstractSetCodec[E, Set[E]](
 
 object SetCodec
 {
+  import scala.reflect.runtime.universe._
   def apply[E](implicit eltTag: TypeTag[E]): SetCodec[E] =
   {
     val eltCodec = TypeConversions.toCodec[E](eltTag.tpe)
     apply(eltCodec)
   }
+
   def apply[E](eltCodec: TypeCodec[E]): SetCodec[E] = new SetCodec[E](eltCodec)
 }
 

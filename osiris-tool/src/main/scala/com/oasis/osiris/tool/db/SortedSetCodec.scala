@@ -17,7 +17,6 @@
 package com.oasis.osiris.tool.db
 
 import com.datastax.driver.core._
-
 import scala.collection.immutable.SortedSet
 
 class SortedSetCodec[E](eltCodec: TypeCodec[E])(implicit ordering: Ordering[E])
@@ -30,10 +29,12 @@ extends AbstractSetCodec[E, SortedSet[E]](
 
 object SortedSetCodec
 {
+  import scala.reflect.runtime.universe._
   def apply[E](implicit eltTag: TypeTag[E], ordering: Ordering[E]): SortedSetCodec[E] =
   {
     val eltCodec = TypeConversions.toCodec[E](eltTag.tpe)
     apply(eltCodec)
   }
+
   def apply[E](eltCodec: TypeCodec[E])(implicit ordering: Ordering[E]): SortedSetCodec[E] = new SortedSetCodec[E](eltCodec)
 }

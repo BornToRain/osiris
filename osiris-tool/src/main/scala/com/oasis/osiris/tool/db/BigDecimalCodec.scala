@@ -17,7 +17,6 @@
 package com.oasis.osiris.tool.db
 
 import java.nio.ByteBuffer
-
 import com.datastax.driver.core.{DataType, ProtocolVersion, TypeCodec}
 import com.datastax.driver.core.exceptions.InvalidTypeException
 import com.google.common.reflect.TypeToken
@@ -37,6 +36,7 @@ with VersionAgnostic[BigDecimal]
     bytes.rewind
     bytes
   }
+
   override def deserialize(bytes: ByteBuffer, protocolVersion: ProtocolVersion): BigDecimal =
   {
     if (bytes == null || bytes.remaining == 0) return null
@@ -47,8 +47,10 @@ with VersionAgnostic[BigDecimal]
     bb.get(bibytes)
     BigDecimal(BigInt(bibytes), scale)
   }
+
   override def format(value: BigDecimal): String = if (value == null) "NULL"
   else value.toString
+
   override def parse(value: String): BigDecimal =
   {
     try

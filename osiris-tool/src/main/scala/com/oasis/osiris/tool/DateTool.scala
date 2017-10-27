@@ -1,7 +1,6 @@
 package com.oasis.osiris.tool
 
 import java.time.Instant
-
 import org.joda.time.{DateTime, Duration}
 
 /**
@@ -15,6 +14,7 @@ object DateTool
   lazy val DAYS      = "days"
   lazy val FULLDATE  = "yyyy-MM-dd HH:mm:ss"
   lazy val TIMESTAMP = "yyyyMMddHHmmss"
+
   //字符串转Instant格式日期
   def toInstant(str: String) = str match
   {
@@ -28,6 +28,7 @@ object DateTool
     } + 'Z'
     Instant.parse(utc)
   }
+
   //x与y的时间差
   //x<y?正数:负数 默认分钟
   def compareTO(x: Instant)(y: Instant)(`type`: String = MINUTES) =
@@ -42,6 +43,7 @@ object DateTool
       case _       => d.getMillis
     }
   }
+
   //yyyyMMddHHmmss格式时间戳
   def datetimeStamp = DateTime.now.toString(TIMESTAMP)
 }

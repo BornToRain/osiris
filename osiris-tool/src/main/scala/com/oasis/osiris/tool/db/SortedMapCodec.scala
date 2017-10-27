@@ -17,7 +17,6 @@
 package com.oasis.osiris.tool.db
 
 import com.datastax.driver.core._
-
 import scala.collection.immutable.SortedMap
 
 class SortedMapCodec[K, V](keyCodec: TypeCodec[K], valueCodec: TypeCodec[V])(implicit ordering: Ordering[K])
@@ -31,12 +30,14 @@ extends AbstractMapCodec[K, V, SortedMap[K, V]](
 
 object SortedMapCodec
 {
+  import scala.reflect.runtime.universe._
   def apply[K, V](implicit keyTag: TypeTag[K], valueTag: TypeTag[V], ordering: Ordering[K]): SortedMapCodec[K, V] =
   {
     val keyCodec = TypeConversions.toCodec[K](keyTag.tpe)
     val valueCodec = TypeConversions.toCodec[V](valueTag.tpe)
     apply(keyCodec, valueCodec)
   }
+
   def apply[K, V](keyCodec: TypeCodec[K], valueCodec: TypeCodec[V])(implicit ordering: Ordering[K]): SortedMapCodec[K, V] =
     new SortedMapCodec[K, V](keyCodec, valueCodec)
 }

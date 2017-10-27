@@ -17,12 +17,10 @@
 package com.oasis.osiris.tool.db
 
 import java.nio.ByteBuffer
-
 import com.datastax.driver.core._
 import com.datastax.driver.core.DataType.CollectionType
 import com.datastax.driver.core.exceptions.InvalidTypeException
 import com.google.common.reflect.TypeToken
-
 import scala.collection.mutable
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable.ArrayBuffer
@@ -49,6 +47,7 @@ with VersionAgnostic[C]
     }
     CodecUtils.pack(bbs.toArray, value.size, protocolVersion)
   }
+
   override def deserialize(bytes: ByteBuffer, protocolVersion: ProtocolVersion): C =
   {
     val builder: mutable.Builder[(K, V), C] = bf()
@@ -65,10 +64,12 @@ with VersionAgnostic[C]
     }
     builder.result
   }
+
   override def format(value: C): String =
     if (value == null) "NULL"
     else '{' + value.map
     { case (k, v) => s"${keyCodec.format(k) }:${valueCodec.format(v) }" }.mkString(",") + '}'
+
   override def parse(value: String): C =
   {
     val builder: mutable.Builder[(K, V), C] = bf()
@@ -99,6 +100,7 @@ with VersionAgnostic[C]
     }
     throw new InvalidTypeException( s"""Malformed map value "$value", missing closing '}'""")
   }
+
   override def accepts(value: AnyRef): Boolean = value match
   {
     case map: scala.collection.Map[_, _] => if (map.isEmpty) true

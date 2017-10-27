@@ -1,7 +1,6 @@
 package com.oasis.osiris.tool.functional
 
 import simulacrum._
-
 import scala.concurrent.{ExecutionContext, Future}
 
 /**

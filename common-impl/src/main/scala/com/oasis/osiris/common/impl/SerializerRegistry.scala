@@ -12,10 +12,12 @@ object SerializerRegistry extends JsonSerializerRegistry
     JsonSerializer[CallUpRecordCommand.Bind],
     JsonSerializer[CallUpRecordCommand.HangUp.type],
     JsonSerializer[CallUpRecordCommand.Update],
+    JsonSerializer[SmsRecordCommand.Create],
     //事件
     JsonSerializer[CallUpRecordEvent.Bound],
     JsonSerializer[CallUpRecordEvent.HungUp.type],
     JsonSerializer[CallUpRecordEvent.Updated],
+    JsonSerializer[SmsRecordEvent.Created],
     //状态
     JsonSerializer[CallUpRecordState]
   )

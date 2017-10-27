@@ -1,7 +1,6 @@
 package com.oasis.osiris.tool
 
 import akka.event.slf4j.SLF4JLogging
-
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
@@ -36,14 +35,15 @@ class IdWorker(workerId: Int, dataCenterId: Int) extends SLF4JLogging
   //生成序列的掩码, 0xfff=4095
   private[this] val sequenceMask       = -1L ^ (-1L << sequenceBits)
   //毫秒内序列 0-4095
-  private[this] var sequence      = 0L
+  private[this] var sequence           = 0L
   //生成Id的时间戳
-  private[this] var lastTimestamp = -1L
+  private[this] var lastTimestamp      = -1L
   require(workerId <= maxWorkerId && workerId >= 0,
     s"工作Id不能大于${maxWorkerId }或者小于0")
   require(dataCenterId <= maxDataCenterId && dataCenterId >= 0,
     s"数据中心Id不能大于${maxDataCenterId }或者小于0")
   log.info(s"开始创建ID.时间戳左移${timestampLeftShift },数据中心位数${dataCenterIdBits },机器ID位数$workerIdBits,序列位数${sequenceBits },机器ID$workerId")
+
   /**
     * 获得下一个ID (该方法是线程安全的)
     *
@@ -74,6 +74,7 @@ class IdWorker(workerId: Int, dataCenterId: Int) extends SLF4JLogging
     })
     .get
   }
+
   /**
     * 阻塞到下一毫秒,获得新的时间戳
     *
@@ -86,6 +87,7 @@ class IdWorker(workerId: Int, dataCenterId: Int) extends SLF4JLogging
     if (timestamp <= lastTimestamp) timeGenerator
     else timestamp
   }
+
   /**
     * 生成以毫秒为单位的当前时间
     *
@@ -98,7 +100,9 @@ object IdWorker
 {
   //默认一台机器一个节点 单Worker实例
   private[this] val flowIdWorker = new IdWorker(1, 1)
+
   //升格成Future
   def liftF(implicit ec: ExecutionContext) = Future(nextId)
+
   def nextId: String = flowIdWorker.nextId + ""
 }

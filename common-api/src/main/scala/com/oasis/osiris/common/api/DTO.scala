@@ -37,15 +37,24 @@ object MoorDTO
 
 }
 
-//短信
+//短信DTO
 object SmsDTO
 {
 
-  case class SmsDTO(mobile: String, smsType: String, captcha)
+  //发送
+  case class Send(mobile: String, smsType: String)
 
-  object SmsDTO
+  object Send
   {
-    implicit val format: Format[SmsDTO] = Json.format
+    implicit val format: Format[Send] = Json.format
+  }
+
+  //验证
+  case class Validation(mobile: String, smsType: String, captcha: String)
+
+  object Validation
+  {
+    implicit val format: Format[Validation] = Json.format
   }
 
 }

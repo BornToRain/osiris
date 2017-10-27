@@ -1,8 +1,6 @@
 package com.oasis.osiris.common.impl
 
 import java.time.Instant
-
-import akka.Done
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.ReplyType
 import com.oasis.osiris.common.impl.CallEventStatus.CallEventStatus
 import com.oasis.osiris.common.impl.CallStatus.CallStatus
@@ -21,24 +19,24 @@ object CallUpRecordCommand
 
   //绑定命令
   case class Bind(
-    id         : String,
-    thirdId    : Option[String],
-    call       : String,
+    id: String,
+    thirdId: Option[String],
+    call: String,
     called     : String,
     maxCallTime: Option[Long],
-    noticeUri  : Option[String],
-    createTime : Instant = Instant.now,
+    noticeUri: Option[String],
+    createTime: Instant = Instant.now,
     updateTime : Instant = Instant.now)
   extends CallUpRecordCommand[String]
 
   //更新命令
   case class Update
   (
-    id         : Option[String],
-    call       : String,
+    id: Option[String],
+    call: String,
     called     : String,
-    callType   : String,
-    ringTime   : Option[Instant],
+    callType: String,
+    ringTime: Option[Instant],
     beginTime  : Option[Instant],
     endTime    : Option[Instant],
     status     : CallStatus,
@@ -55,7 +53,7 @@ object CallUpRecordCommand
   }
 
   //挂断命令
-  case object HangUp extends CallUpRecordCommand[Done]
+  case object HangUp extends CallUpRecordCommand[Option[MoorRequest.HangUp]]
   {
     implicit val format: Format[HangUp.type] = singletonFormat(HangUp)
   }
@@ -63,6 +61,7 @@ object CallUpRecordCommand
   object Update
   {
     implicit val format: Format[Update] = Json.format
+
     //map转case class
     def fromMap(map: Map[String, String]) =
     {
@@ -87,10 +86,10 @@ object SmsRecordCommand
 
   //创建
   case class Create(
-    id        : String,
-    mobile    : String,
-    smsType   : String,
-    isBusiness: Boolean,
+    id: String,
+    mobile: String,
+    smsType: String,
+    isSuccess: Boolean,
     createTime: Instant = Instant.now,
     updateTime: Instant = Instant.now) extends SmsRecordCommand[String]
 

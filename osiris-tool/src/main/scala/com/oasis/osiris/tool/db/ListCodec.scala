@@ -28,11 +28,13 @@ extends AbstractSeqCodec[E, List[E]](
 
 object ListCodec
 {
+  import scala.reflect.runtime.universe._
   def apply[E](implicit eltTag: TypeTag[E]): ListCodec[E] =
   {
     val eltCodec = TypeConversions.toCodec[E](eltTag.tpe)
     apply(eltCodec)
   }
+
   def apply[E](eltCodec: TypeCodec[E]): ListCodec[E] = new ListCodec[E](eltCodec)
 }
 

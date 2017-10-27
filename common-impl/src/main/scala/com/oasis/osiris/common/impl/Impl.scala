@@ -3,7 +3,6 @@ import com.lightbend.lagom.scaladsl.persistence.PersistentEntityRegistry
 import com.oasis.osiris.common.api.CommonService
 import com.oasis.osiris.tool.Api
 import com.oasis.osiris.tool.functional.Lift.ops._
-
 import scala.concurrent.ExecutionContext
 
 /**
@@ -11,19 +10,21 @@ import scala.concurrent.ExecutionContext
   */
 class CommonServiceImpl
 (
-  moor                     : MoorClient,
-  registry                 : PersistentEntityRegistry,
+  moorClient: MoorClient,
+  registry: PersistentEntityRegistry,
   callUpRecordRepository   : CallUpRecordRepository,
   bindingRelationRepository: BindingRelationRepository
 )(implicit ec: ExecutionContext) extends CommonService with Api
 {
-  import akka.Done
   import com.lightbend.lagom.scaladsl.api.transport.NotFound
+  import com.lightbend.lagom.scaladsl.persistence.PersistentEntity
   import com.lightbend.lagom.scaladsl.server.ServerServiceCall
   import com.oasis.osiris.tool.{IdWorker, Restful}
+  import scala.reflect.ClassTag
 
-  override def bindCallUpRecord = v2(ServerServiceCall((r, d) =>
+  override def bindCallUpRecord = v2(ServerServiceCall
   {
+    (r, d) =>
     for
     {
       //Id生成
@@ -31,21 +32,30 @@ class CommonServiceImpl
       //绑定命令
       cmd <- CallUpRecordCommand.Bind(id, d.thirdId, d.call, d.called, d.maxCallTime, d.noticeUri).liftF
       //发送绑定命令
-      _ <- refFor(id).ask(cmd)
+      _ <- refFor[CallUpRecordEntity](id).ask(cmd)
       //Http201响应
     } yield Restful.created(r)(id)
-  }))
-  override def hangUpCallUpRecord(id: String) = v2(ServerServiceCall((_, _) =>
+  })
+
+  override def hangUpCallUpRecord(id: String) = v2(ServerServiceCall
   {
+    (_, _) =>
     for
     {
-      //发出挂断命令
-      _ <- refFor(id).ask(CallUpRecordCommand.HangUp)
+      //发出挂断命令返回挂断请求参数
+      hangup <- refFor[CallUpRecordEntity](id).ask(CallUpRecordCommand.HangUp)
+      _ <- hangup match
+      {
+        case Some(d) => moorClient.hangUp(d)
+        case _       => throw NotFound(s"ID${id }通话记录不存在")
+      }
       //Http204响应
     } yield Restful.noContent
-  }))
-  override def calledCallUpRecord(mobile: String) = v2(ServerServiceCall(_ =>
+  })
+
+  override def calledCallUpRecord(mobile: String) = v2(ServerServiceCall
   {
+    _ =>
     log.info(s"容联七陌电话回调 =====> $mobile")
     //绑定关系
     bindingRelationRepository.getByPK(mobile)
@@ -55,9 +65,11 @@ class CommonServiceImpl
       //Http404响应
       case _ => throw NotFound(s"手机号${mobile }绑定关系不存在")
     }
-  }))
-  override def callbackCallUpRecord = v2(ServerServiceCall((r, _) =>
+  })
+
+  override def callbackCallUpRecord = v2(ServerServiceCall
   {
+    (r, _) =>
     for
     {
       //参数
@@ -80,12 +92,11 @@ class CommonServiceImpl
         case _             => throw NotFound("绑定关系不存在")
       }
       //发送更新命令
-      data <- refFor(id).ask(cmd)
-      _ <- data.withFilter(_.noticeUri.isDefined)
-      .map(d => d)
+      _ <- refFor[CallUpRecordEntity](id).ask(cmd)
       //Http200响应
     } yield Restful.ok
-  }))
+  })
+
   /**
     * 从QueryString获取Map集合参数
     */
@@ -97,18 +108,25 @@ class CommonServiceImpl
     case (map, Array(x, y)) => map + (x -> y)
     case (map, _)           => map
   }
-  override def sms = v2(ServerServiceCall(d =>
+
+  override def sms = v2(ServerServiceCall
   {
+    (r, d) =>
     for
     {
       //主键
       id <- IdWorker.liftF
       //创建命令
-      cmd <- SmsRecordCommand.Create(id, d.mobile, d.smsType, isBusiness = false).liftF
-    } yield Done
-  }))
+      cmd <- SmsRecordCommand.Create(id, d.mobile, d.smsType, isSuccess = false).liftF
+      //发送创建命令
+      data <- refFor[SmsRecordEntity](id).ask(cmd)
+    } yield Restful.created(r)(id)
+  })
+
+  override def smsValidation = ???
+
   /**
     * 主键获取聚合根
     */
-  private[this] def refFor(id: String) = registry.refFor[CallUpRecordEntity](id)
+  private[this] def refFor[T <: PersistentEntity : ClassTag](id: String) = registry.refFor[T](id)
 }

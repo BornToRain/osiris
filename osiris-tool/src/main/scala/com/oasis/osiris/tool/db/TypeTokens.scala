@@ -17,7 +17,6 @@
 package com.oasis.osiris.tool.db
 
 import com.google.common.reflect.{TypeParameter, TypeToken}
-
 import scala.collection.immutable
 
 /**
@@ -35,78 +34,91 @@ object TypeTokens
   val long   : TypeToken[Long]    = TypeToken.of(classOf[Long]).wrap()
   val float  : TypeToken[Float]   = TypeToken.of(classOf[Float]).wrap()
   val double : TypeToken[Double]  = TypeToken.of(classOf[Double]).wrap()
+
   def seqOf[T](eltType: Class[T]): TypeToken[immutable.Seq[T]] =
   {
     new TypeToken[immutable.Seq[T]]()
     {}.where(new TypeParameter[T]()
     {}, eltType)
   }
+
   def seqOf[T](eltType: TypeToken[T]): TypeToken[immutable.Seq[T]] =
   {
     new TypeToken[immutable.Seq[T]]()
     {}.where(new TypeParameter[T]()
     {}, eltType)
   }
+
   def listOf[T](eltType: Class[T]): TypeToken[immutable.List[T]] =
   {
     new TypeToken[immutable.List[T]]()
     {}.where(new TypeParameter[T]()
     {}, eltType)
   }
+
   def listOf[T](eltType: TypeToken[T]): TypeToken[immutable.List[T]] =
   {
     new TypeToken[immutable.List[T]]()
     {}.where(new TypeParameter[T]()
     {}, eltType)
   }
+
   def vectorOf[T](eltType: Class[T]): TypeToken[immutable.Vector[T]] =
   {
     new TypeToken[immutable.Vector[T]]()
     {}.where(new TypeParameter[T]()
     {}, eltType)
   }
+
   def vectorOf[T](eltType: TypeToken[T]): TypeToken[immutable.Vector[T]] =
   {
     new TypeToken[immutable.Vector[T]]()
     {}.where(new TypeParameter[T]()
     {}, eltType)
   }
+
   def setOf[T](eltType: Class[T]): TypeToken[immutable.Set[T]] =
   {
     new TypeToken[immutable.Set[T]]()
     {}.where(new TypeParameter[T]()
     {}, eltType)
   }
+
   def setOf[T](eltType: TypeToken[T]): TypeToken[immutable.Set[T]] =
   {
     new TypeToken[immutable.Set[T]]()
     {}.where(new TypeParameter[T]()
     {}, eltType)
   }
+
   def sortedSetOf[T](eltType: Class[T]): TypeToken[immutable.SortedSet[T]] =
   {
     new TypeToken[immutable.SortedSet[T]]()
     {}.where(new TypeParameter[T]()
     {}, eltType)
   }
+
   def sortedSetOf[T](eltType: TypeToken[T]): TypeToken[immutable.SortedSet[T]] =
   {
     new TypeToken[immutable.SortedSet[T]]()
     {}.where(new TypeParameter[T]()
     {}, eltType)
   }
+
   def treeSetOf[T](eltType: Class[T]): TypeToken[immutable.TreeSet[T]] =
   {
     new TypeToken[immutable.TreeSet[T]]()
     {}.where(new TypeParameter[T]()
     {}, eltType)
   }
+
   def treeSetOf[T](eltType: TypeToken[T]): TypeToken[immutable.TreeSet[T]] =
   {
     new TypeToken[immutable.TreeSet[T]]()
     {}.where(new TypeParameter[T]()
     {}, eltType)
   }
+
   def mapOf[K, V](keyType: Class[K], valueType: Class[V]): TypeToken[immutable.Map[K, V]] =
   {
     new TypeToken[immutable.Map[K, V]]()
@@ -116,6 +128,7 @@ object TypeTokens
     .where(new TypeParameter[V]()
     {}, valueType)
   }
+
   def mapOf[K, V](keyType: TypeToken[K], valueType: TypeToken[V]): TypeToken[immutable.Map[K, V]] =
   {
     new TypeToken[immutable.Map[K, V]]()
@@ -125,6 +138,7 @@ object TypeTokens
     .where(new TypeParameter[V]()
     {}, valueType)
   }
+
   def sortedMapOf[K, V](keyType: Class[K], valueType: Class[V]): TypeToken[immutable.SortedMap[K, V]] =
   {
     new TypeToken[immutable.SortedMap[K, V]]()
@@ -134,6 +148,7 @@ object TypeTokens
     .where(new TypeParameter[V]()
     {}, valueType)
   }
+
   def sortedMapOf[K, V](keyType: TypeToken[K], valueType: TypeToken[V]): TypeToken[immutable.SortedMap[K, V]] =
   {
     new TypeToken[immutable.SortedMap[K, V]]()
@@ -143,6 +158,7 @@ object TypeTokens
     .where(new TypeParameter[V]()
     {}, valueType)
   }
+
   def treeMapOf[K, V](keyType: Class[K], valueType: Class[V]): TypeToken[immutable.TreeMap[K, V]] =
   {
     new TypeToken[immutable.TreeMap[K, V]]()
@@ -152,6 +168,7 @@ object TypeTokens
     .where(new TypeParameter[V]()
     {}, valueType)
   }
+
   def treeMapOf[K, V](keyType: TypeToken[K], valueType: TypeToken[V]): TypeToken[immutable.TreeMap[K, V]] =
   {
     new TypeToken[immutable.TreeMap[K, V]]()
@@ -161,18 +178,21 @@ object TypeTokens
     .where(new TypeParameter[V]()
     {}, valueType)
   }
+
   def optionOf[T](eltType: Class[T]): TypeToken[Option[T]] =
   {
     new TypeToken[Option[T]]()
     {}.where(new TypeParameter[T]()
     {}, eltType)
   }
+
   def optionOf[T](eltType: TypeToken[T]): TypeToken[Option[T]] =
   {
     new TypeToken[Option[T]]()
     {}.where(new TypeParameter[T]()
     {}, eltType)
   }
+
   def tuple2Of[T1, T2](type1: Class[T1], type2: Class[T2]): TypeToken[(T1, T2)] =
   {
     new TypeToken[(T1, T2)]()
@@ -182,6 +202,7 @@ object TypeTokens
     .where(new TypeParameter[T2]()
     {}, type2)
   }
+
   def tuple2Of[T1, T2](type1: TypeToken[T1], type2: TypeToken[T2]): TypeToken[(T1, T2)] =
   {
     new TypeToken[(T1, T2)]()
@@ -191,6 +212,7 @@ object TypeTokens
     .where(new TypeParameter[T2]()
     {}, type2)
   }
+
   def tuple3Of[T1, T2, T3](type1: Class[T1], type2: Class[T2], type3: Class[T3]): TypeToken[(T1, T2, T3)] =
   {
     new TypeToken[(T1, T2, T3)]()
@@ -202,6 +224,7 @@ object TypeTokens
     .where(new TypeParameter[T3]()
     {}, type3)
   }
+
   def tuple3Of[T1, T2, T3](type1: TypeToken[T1], type2: TypeToken[T2], type3: TypeToken[T3]): TypeToken[(T1, T2, T3)] =
   {
     new TypeToken[(T1, T2, T3)]()

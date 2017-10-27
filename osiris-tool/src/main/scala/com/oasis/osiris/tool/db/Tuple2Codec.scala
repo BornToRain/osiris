@@ -17,7 +17,6 @@
 package com.oasis.osiris.tool.db
 
 import java.nio.ByteBuffer
-
 import com.datastax.driver.core._
 import com.datastax.driver.core.TypeCodec.AbstractTupleCodec
 import com.google.common.reflect.TypeToken
@@ -44,23 +43,28 @@ with VersionAgnostic[(T1, T2)]
     require(eltCodecs._1.accepts(componentTypes.get(0)), s"Codec for component 1 does not accept component type: ${componentTypes.get(0) }")
     require(eltCodecs._2.accepts(componentTypes.get(1)), s"Codec for component 2 does not accept component type: ${componentTypes.get(1) }")
   }
+
   override protected def newInstance(): (T1, T2) = null
+
   override protected def serializeField(source: (T1, T2), index: Int, protocolVersion: ProtocolVersion): ByteBuffer = index match
   {
     case 0 => eltCodecs._1.serialize(source._1, protocolVersion)
     case 1 => eltCodecs._2.serialize(source._2, protocolVersion)
   }
+
   override protected def deserializeAndSetField(input: ByteBuffer, target: (T1, T2), index: Int,
     protocolVersion                                  : ProtocolVersion): (T1, T2) = index match
   {
     case 0 => Tuple2(eltCodecs._1.deserialize(input, protocolVersion), null.asInstanceOf[T2])
     case 1 => target.copy(_2 = eltCodecs._2.deserialize(input, protocolVersion))
   }
+
   override protected def formatField(source: (T1, T2), index: Int): String = index match
   {
     case 0 => eltCodecs._1.format(source._1)
     case 1 => eltCodecs._2.format(source._2)
   }
+
   override protected def parseAndSetField(input: String, target: (T1, T2), index: Int): (T1, T2) = index match
   {
     case 0 => Tuple2(eltCodecs._1.parse(input), null.asInstanceOf[T2])
@@ -70,12 +74,14 @@ with VersionAgnostic[(T1, T2)]
 
 object Tuple2Codec
 {
+  import scala.reflect.runtime.universe._
   def apply[T1, T2](implicit eltTag1: TypeTag[T1], eltTag2: TypeTag[T2]): Tuple2Codec[T1, T2] =
   {
     val eltCodec1 = TypeConversions.toCodec[T1](eltTag1.tpe)
     val eltCodec2 = TypeConversions.toCodec[T2](eltTag2.tpe)
     apply(eltCodec1, eltCodec2)
   }
+
   def apply[T1, T2](eltCodec1: TypeCodec[T1], eltCodec2: TypeCodec[T2]): Tuple2Codec[T1, T2] =
     new Tuple2Codec[T1, T2](eltCodec1, eltCodec2)
 }

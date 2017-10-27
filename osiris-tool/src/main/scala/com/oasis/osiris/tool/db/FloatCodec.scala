@@ -17,7 +17,6 @@
 package com.oasis.osiris.tool.db
 
 import java.nio.ByteBuffer
-
 import com.datastax.driver.core.{DataType, ProtocolVersion, TypeCodec}
 import com.datastax.driver.core.exceptions.InvalidTypeException
 
@@ -26,14 +25,17 @@ with VersionAgnostic[Float]
 {
   override def serialize(value: Float, protocolVersion: ProtocolVersion): ByteBuffer =
     ByteBuffer.allocate(4).putFloat(0, value)
+
   override def deserialize(bytes: ByteBuffer, protocolVersion: ProtocolVersion): Float =
   {
     if (bytes == null || bytes.remaining == 0) return 0
     if (bytes.remaining != 4) throw new InvalidTypeException("Invalid 32-bits float value, expecting 4 bytes but got " + bytes.remaining)
     bytes.getFloat(bytes.position)
   }
+
   override def format(value: Float): String =
     value.toString
+
   override def parse(value: String): Float =
   {
     try

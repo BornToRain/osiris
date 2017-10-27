@@ -17,7 +17,6 @@
 package com.oasis.osiris.tool.db
 
 import java.lang.reflect
-
 import com.datastax.driver.core._
 import com.google.common.reflect.TypeToken
 
@@ -35,6 +34,7 @@ object Implicits
       val javaType: reflect.Type = TypeConversions.toJavaType(typeTag.tpe)
       self.get(i, TypeToken.of(javaType).wrap().asInstanceOf[TypeToken[T]])
     }
+
     def getImplicitly[T](name: String)(implicit typeTag: TypeTag[T]): T =
     {
       val javaType: reflect.Type = TypeConversions.toJavaType(typeTag.tpe)
@@ -49,6 +49,7 @@ object Implicits
       val javaType: reflect.Type = TypeConversions.toJavaType(typeTag.tpe)
       self.set(i, value, TypeToken.of(javaType).wrap().asInstanceOf[TypeToken[T]])
     }
+
     def setImplicitly[T](name: String, value: T)(implicit typeTag: TypeTag[T]): BoundStatement =
     {
       val javaType: reflect.Type = TypeConversions.toJavaType(typeTag.tpe)

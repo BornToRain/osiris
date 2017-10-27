@@ -17,7 +17,6 @@
 package com.oasis.osiris.tool.db
 
 import java.nio.ByteBuffer
-
 import com.datastax.driver.core.{DataType, ProtocolVersion, TypeCodec}
 import com.datastax.driver.core.exceptions.InvalidTypeException
 
@@ -26,14 +25,17 @@ with VersionAgnostic[Double]
 {
   override def serialize(value: Double, protocolVersion: ProtocolVersion): ByteBuffer =
     ByteBuffer.allocate(8).putDouble(0, value)
+
   override def deserialize(bytes: ByteBuffer, protocolVersion: ProtocolVersion): Double =
   {
     if (bytes == null || bytes.remaining == 0) return 0
     if (bytes.remaining != 8) throw new InvalidTypeException("Invalid 64-bits double value, expecting 8 bytes but got " + bytes.remaining)
     bytes.getDouble(bytes.position)
   }
+
   override def format(value: Double): String =
     value.toString
+
   override def parse(value: String): Double =
   {
     try

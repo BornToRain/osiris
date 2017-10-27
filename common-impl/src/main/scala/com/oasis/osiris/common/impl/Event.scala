@@ -49,7 +49,7 @@ object CallUpRecordEvent
 //短信记录事件集
 sealed trait SmsRecordEvent extends AggregateEvent[SmsRecordEvent]
 {
-  override def aggregateTag: AggregateEventTagger[SmsRecordEvent] = ???
+  override def aggregateTag: AggregateEventTagger[SmsRecordEvent] = SmsRecordEvent.tag
 }
 
 object SmsRecordEvent

@@ -64,3 +64,23 @@ object CallUpRecord
     None,
     cmd.createTime, cmd.updateTime)
 }
+
+case class SmsRecord
+(
+  id        : String,
+  //短信在阿里唯一标识
+  messageId : Option[String],
+  //发送手机号
+  mobile    : String,
+  //短信类型
+  smsType   : String,
+  //短信接收成功
+  isSuccess : Boolean,
+  createTime: Instant,
+  updateTime: Instant
+)
+
+object SmsRecord
+{
+  implicit val format: Format[SmsRecord] = Json.format
+}

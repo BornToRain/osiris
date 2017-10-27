@@ -13,7 +13,8 @@ trait CommonService extends Service
   def hangUpCallUpRecord(id: String): ServiceCall[NotUsed, Done]
   def calledCallUpRecord(mobile: String): ServiceCall[NotUsed, String]
   def callbackCallUpRecord: ServiceCall[NotUsed, Done]
-  def sms: ServiceCall[SmsDTO.SmsDTO, Done]
+  def sms: ServiceCall[SmsDTO.Send, Done]
+  def smsValidation: ServiceCall[SmsDTO.Validation, Boolean]
 
   import Service._
 
@@ -27,6 +28,8 @@ trait CommonService extends Service
     //容联七陌通话事件推送更新回调
     restCall(Method.GET, "/commons/7moor/hang-up", callbackCallUpRecord),
     //发送验证码
-    restCall(Method.POST, "/commons/sms", sms)
+    restCall(Method.POST, "/commons/sms", sms),
+    //验证验证码
+    restCall(Method.POST, "/commons/sms/validation", smsValidation)
   ).withAutoAcl(true)
 }

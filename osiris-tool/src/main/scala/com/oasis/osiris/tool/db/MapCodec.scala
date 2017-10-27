@@ -29,12 +29,14 @@ extends AbstractMapCodec[K, V, Map[K, V]](
 
 object MapCodec
 {
+  import scala.reflect.runtime.universe._
   def apply[K, V](implicit keyTag: TypeTag[K], valueTag: TypeTag[V]): MapCodec[K, V] =
   {
     val keyCodec = TypeConversions.toCodec[K](keyTag.tpe)
     val valueCodec = TypeConversions.toCodec[V](valueTag.tpe)
     apply(keyCodec, valueCodec)
   }
+
   def apply[K, V](keyCodec: TypeCodec[K], valueCodec: TypeCodec[V]): MapCodec[K, V] =
     new MapCodec[K, V](keyCodec, valueCodec)
 }

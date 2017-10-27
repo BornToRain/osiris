@@ -1,11 +1,9 @@
 package com.oasis.osiris.common.impl
 
 import java.time.Instant
-
 import com.lightbend.lagom.scaladsl.persistence.cassandra.CassandraSession
 import com.oasis.osiris.tool.db.Implicits._
 import com.oasis.osiris.tool.functional.Lift.ops._
-
 import scala.concurrent.ExecutionContext
 
 /**

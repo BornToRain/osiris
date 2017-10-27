@@ -20,17 +20,16 @@ import java.lang.reflect.{GenericArrayType, ParameterizedType, Type => JType}
 import java.net.InetAddress
 import java.nio.ByteBuffer
 import java.util.{Date, UUID}
-
 import com.datastax.driver.core.{Duration, TypeCodec}
 import com.datastax.driver.core.exceptions.CodecNotFoundException
 import com.datastax.driver.extras.codecs.jdk8.{InstantCodec, LocalDateCodec, LocalTimeCodec}
 import com.google.common.reflect.TypeToken
-
 import scala.reflect.runtime.universe._
 
 object TypeConversions
 {
   private val mirror = runtimeMirror(getClass.getClassLoader)
+
   def toCodec[T](tpe: Type): TypeCodec[T] =
   {
     val codec = tpe match
@@ -74,6 +73,7 @@ object TypeConversions
     }
     codec.asInstanceOf[TypeCodec[T]]
   }
+
   def toJavaType(tpe: Type): JType = tpe match
   {
 
@@ -105,8 +105,11 @@ object TypeConversions
   private class ScalaParameterizedType(val rawType: Class[_], val actualTypeArguments: Array[JType], val ownerType: JType) extends ParameterizedType
   {
     override def getRawType: Class[_] = rawType
+
     override def getActualTypeArguments: Array[JType] = actualTypeArguments
+
     override def getOwnerType: JType = ownerType
+
     override def equals(o: Any): Boolean = o match
     {
       case that: ParameterizedType =>
@@ -123,11 +126,13 @@ object TypeConversions
       }
       case _                       => false
     }
+
     override def hashCode: Int = actualTypeArguments.toSeq.hashCode ^
     (if (this.ownerType == null) 0
     else this.ownerType.hashCode) ^
     (if (this.rawType == null) 0
     else this.rawType.hashCode)
+
     override def toString: String =
     {
       val sb: StringBuilder = new StringBuilder
@@ -170,6 +175,7 @@ object TypeConversions
   private class ScalaGenericArrayType(val genericComponentType: JType) extends GenericArrayType
   {
     override def getGenericComponentType: JType = genericComponentType
+
     override def toString: String =
     {
       val componentType = this.genericComponentType
@@ -182,6 +188,7 @@ object TypeConversions
       sb.append("[]")
       sb.toString
     }
+
     override def equals(o: Any): Boolean = o match
     {
       case that: GenericArrayType =>
@@ -189,6 +196,7 @@ object TypeConversions
       this.genericComponentType == thatComponentType
       case _                      => false
     }
+
     override def hashCode: Int = this.genericComponentType.hashCode
   }
 

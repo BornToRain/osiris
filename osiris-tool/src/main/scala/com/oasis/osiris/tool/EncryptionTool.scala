@@ -11,6 +11,7 @@ object EncryptionTool
   //MD5加密
   def md5(s: String) = MessageDigest.getInstance("MD5")
   .digest(s.getBytes).map("%02x".format(_)).mkString
+
   //Base64加解密 默认加密
   def base64(s: String)(implicit op: String = "en") = op match
   {

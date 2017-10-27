@@ -17,7 +17,6 @@
 package com.oasis.osiris.tool.db
 
 import java.nio.ByteBuffer
-
 import com.datastax.driver.core.{DataType, ProtocolVersion, TypeCodec}
 import com.datastax.driver.core.exceptions.InvalidTypeException
 import com.datastax.driver.core.utils.Bytes
@@ -29,11 +28,14 @@ with VersionAgnostic[BigInt]
   override def serialize(value: BigInt, protocolVersion: ProtocolVersion): ByteBuffer =
     if (value == null) null
     else ByteBuffer.wrap(value.toByteArray)
+
   override def deserialize(bytes: ByteBuffer, protocolVersion: ProtocolVersion): BigInt =
     if (bytes == null || bytes.remaining == 0) null
     else BigInt(Bytes.getArray(bytes))
+
   override def format(value: BigInt): String = if (value == null) "NULL"
   else value.toString
+
   override def parse(value: String): BigInt =
   {
     try
