@@ -27,6 +27,7 @@ lazy val `osiris-tool` = project("osiris-tool")
 .settings(
   name := "osiris-tool",
   libraryDependencies ++= Seq(
+    Library.redis,
     Library.simulacrum,
     Library.cassandraExtras,
     lagomScaladslApi % Optional,
@@ -48,9 +49,31 @@ lazy val `common-impl` = project("common-impl")
 .settings(
   name := "common-impl",
   libraryDependencies ++= Seq(
+    Library.redis,
     Library.macwire,
+    Library.aliyunMns,
     lagomScaladslServer,
     lagomScaladslPersistenceCassandra
   )
 )
 .dependsOn(`osiris-tool`, `common-api`)
+//支付模块接口
+lazy val `payment-api` = project("payment-api")
+.settings(
+  name := "payment-api",
+  libraryDependencies ++= Seq(
+    lagomScaladslApi
+  )
+)
+//支付模块实现
+lazy val `payment-impl` = project("payment-impl")
+.enablePlugins(LagomScala)
+.settings(
+  name := "payment-impl",
+  libraryDependencies ++= Seq(
+    Library.macwire,
+    lagomScaladslServer,
+    lagomScaladslPersistenceCassandra
+  )
+)
+.dependsOn(`osiris-tool`,`payment-api`)

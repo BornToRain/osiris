@@ -1,7 +1,6 @@
 package com.oasis.osiris.tool
 
-import java.time.{Instant, ZoneId}
-import java.time.format.DateTimeFormatter
+import java.time.Instant
 import play.api.data.validation.ValidationError
 import play.api.libs.json._
 import scala.util.Try
@@ -11,9 +10,6 @@ import scala.util.Try
   */
 object JSONTool
 {
-  //日期读写
-  lazy val formatter = DateTimeFormatter.ofPattern(DateTool.FULLDATE).withZone(ZoneId.systemDefault)
-
   //枚举读写
   def enumFormat[E <: Enumeration](enum: E): Format[E#Value] = Format(enumReads(enum), enumWrites)
 
@@ -59,6 +55,6 @@ object JSONTool
     }
     .map(Instant.parse)
   }
-  implicit val instantWrites: Writes[Instant] = Writes(i => JsString(formatter.format(i)))
+  implicit val instantWrites: Writes[Instant] = Writes(i => JsString(DateTool.format(i)))
 }
 

@@ -11,7 +11,7 @@ object MoorDTO
 {
 
   //绑定关系
-  case class Binding(thirdId: Option[String], call: String, called: String, maxCallTime: Option[Long], noticeUri: Option[String])
+  case class Binding(thirdId: Option[String], call: String, called: String, maxCallTime: Option[Int], noticeUri: Option[String])
 
   object Binding
   {

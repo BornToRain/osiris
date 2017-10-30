@@ -10,6 +10,7 @@ class CallUpRecordEntity extends PersistentEntity
 {
   import com.oasis.osiris.common.impl.CallUpRecordCommand._
   import com.oasis.osiris.common.impl.CallUpRecordEvent._
+  import com.oasis.osiris.common.impl.client.MoorRequest
 
   override type Command = CallUpRecordCommand[_]
   override type Event = CallUpRecordEvent
@@ -68,6 +69,7 @@ class CallUpRecordEntity extends PersistentEntity
   }
 }
 
+//短信记录持久化
 class SmsRecordEntity extends PersistentEntity
 {
   import com.oasis.osiris.common.impl.SmsRecordCommand._

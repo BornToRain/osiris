@@ -1,6 +1,7 @@
 package com.oasis.osiris.tool
 
 import java.time.Instant
+
 import org.joda.time.{DateTime, Duration}
 
 /**
@@ -8,12 +9,16 @@ import org.joda.time.{DateTime, Duration}
   */
 object DateTool
 {
+  import java.time.ZoneId
+  import java.time.format.DateTimeFormatter
+  import java.util.Locale
   lazy val SECONDS   = "seconds"
   lazy val MINUTES   = "minutes"
   lazy val HOURS     = "hours"
   lazy val DAYS      = "days"
   lazy val FULLDATE  = "yyyy-MM-dd HH:mm:ss"
   lazy val TIMESTAMP = "yyyyMMddHHmmss"
+  lazy val RFC822DATE = "EEE, dd MMM yyyy HH:mm:ss z"
 
   //字符串转Instant格式日期
   def toInstant(str: String) = str match
@@ -44,6 +49,14 @@ object DateTool
     }
   }
 
-  //yyyyMMddHHmmss格式时间戳
+  /**
+    * yyyyMMddHHmmss格式时间戳
+    */
   def datetimeStamp = DateTime.now.toString(TIMESTAMP)
+
+  /**
+    * 日期格式化
+    */
+  def format(date:Instant)(implicit pattern:String = FULLDATE) = DateTimeFormatter.ofPattern(pattern,Locale.US).withZone(ZoneId.systemDefault).format(date)
+
 }

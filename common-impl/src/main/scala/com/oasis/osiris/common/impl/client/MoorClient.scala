@@ -1,14 +1,11 @@
-package com.oasis.osiris.common.impl
+package com.oasis.osiris.common.impl.client
 
 import com.oasis.osiris.tool.{DateTool, EncryptionTool}
 import com.oasis.osiris.tool.functional.Lift.ops._
-import com.typesafe.config.ConfigFactory
 import play.api.http.HeaderNames
 import play.api.libs.json.{Format, Json, Writes}
 import play.api.libs.ws._
 import scala.concurrent.ExecutionContext
-
-sealed trait MoorRequest
 
 object MoorRequest
 {
@@ -23,9 +20,13 @@ object MoorRequest
 
 }
 
+/**
+  * 容联七陌客户端
+  */
 class MoorClient(ws: WSClient)(implicit ec: ExecutionContext)
 {
-  import com.oasis.osiris.common.impl.MoorRequest._
+  import MoorRequest._
+  import play.api.libs.json.Json
   /**
     * 容联七陌鉴权 请求头部分
     * Base64编码(账户Id+冒号+时间戳)
@@ -61,7 +62,11 @@ class MoorClient(ws: WSClient)(implicit ec: ExecutionContext)
 
 object MoorClient
 {
+  import com.typesafe.config.ConfigFactory
+  //容联七陌账号
   lazy val account = ConfigFactory.load.getString("7moor.account")
-  lazy val secret = ConfigFactory.load.getString("7moor.secret")
+  //容联七陌密钥
+  lazy val secret  = ConfigFactory.load.getString("7moor.secret")
+  //容联七陌网关
   lazy val baseUri = "http://apis.7moor.com/"
 }

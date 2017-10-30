@@ -1,6 +1,7 @@
 package com.oasis.osiris.common.impl
 
 import java.time.Instant
+
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.ReplyType
 import com.oasis.osiris.common.impl.CallEventStatus.CallEventStatus
 import com.oasis.osiris.common.impl.CallStatus.CallStatus
@@ -16,27 +17,33 @@ sealed trait CallUpRecordCommand[Reply] extends ReplyType[Reply]
 
 object CallUpRecordCommand
 {
+  import com.oasis.osiris.common.impl.client.MoorRequest
 
   //绑定命令
   case class Bind(
-    id: String,
-    thirdId: Option[String],
-    call: String,
+    id         : String,
+    thirdId    : Option[String],
+    call       : String,
     called     : String,
-    maxCallTime: Option[Long],
-    noticeUri: Option[String],
-    createTime: Instant = Instant.now,
+    maxCallTime: Option[Int],
+    noticeUri  : Option[String],
+    createTime : Instant = Instant.now,
     updateTime : Instant = Instant.now)
   extends CallUpRecordCommand[String]
+
+  object Bind
+  {
+    implicit val format: Format[Bind] = Json.format
+  }
 
   //更新命令
   case class Update
   (
-    id: Option[String],
-    call: String,
+    id         : Option[String],
+    call       : String,
     called     : String,
-    callType: String,
-    ringTime: Option[Instant],
+    callType   : String,
+    ringTime   : Option[Instant],
     beginTime  : Option[Instant],
     endTime    : Option[Instant],
     status     : CallStatus,
@@ -46,17 +53,6 @@ object CallUpRecordCommand
     callId     : Option[String],
     updateTime : Instant = Instant.now
   ) extends CallUpRecordCommand[Option[CallUpRecord]]
-
-  object Bind
-  {
-    implicit val format: Format[Bind] = Json.format
-  }
-
-  //挂断命令
-  case object HangUp extends CallUpRecordCommand[Option[MoorRequest.HangUp]]
-  {
-    implicit val format: Format[HangUp.type] = singletonFormat(HangUp)
-  }
 
   object Update
   {
@@ -76,6 +72,12 @@ object CallUpRecordCommand
     }
   }
 
+  //挂断命令
+  case object HangUp extends CallUpRecordCommand[Option[MoorRequest.HangUp]]
+  {
+    implicit val format: Format[HangUp.type] = singletonFormat(HangUp)
+  }
+
 }
 
 //短信记录命令集
@@ -86,10 +88,10 @@ object SmsRecordCommand
 
   //创建
   case class Create(
-    id: String,
-    mobile: String,
-    smsType: String,
-    isSuccess: Boolean,
+    id        : String,
+    mobile    : String,
+    smsType   : String,
+    isSuccess : Boolean,
     createTime: Instant = Instant.now,
     updateTime: Instant = Instant.now) extends SmsRecordCommand[String]
 
