@@ -1,29 +1,32 @@
 package com.oasis.osiris.common.impl
 
+import akka.actor.ActorSystem
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity
 
 /**
   * 持久化
   */
 //通话记录持久化
-class CallUpRecordEntity extends PersistentEntity
+class CallUpRecordEntity(actorSystem: ActorSystem) extends PersistentEntity
 {
+  import java.time.Duration
+
   import com.oasis.osiris.common.impl.CallUpRecordCommand._
   import com.oasis.osiris.common.impl.CallUpRecordEvent._
-  import com.oasis.osiris.common.impl.client.MoorRequest
+  import com.oasis.osiris.common.impl.client.{MoorRequest, RedisClient}
 
   override type Command = CallUpRecordCommand[_]
   override type Event = CallUpRecordEvent
-  override type State = CallUpRecordState
+  override type State = Option[CallUpRecord]
 
-  override def initialState = CallUpRecordState.nonexistence
+  override def initialState = None
 
   override def behavior =
   {
     //不存在
-    case CallUpRecordState.nonexistence => nonexistence
+    case None => nonexistence
     //存在状态
-    case CallUpRecordState(Some(_), _, _) => existence
+    case _ => existence
   }
 
   //不存在状态下操作
@@ -39,8 +42,11 @@ class CallUpRecordEntity extends PersistentEntity
   {
     //创建聚合根
     case (Bound(cmd), _) =>
-    val data = CallUpRecord.bind(cmd)
-    CallUpRecordState(Some(data), None, None)
+    val redis = RedisClient(actorSystem).client
+    //绑定关系存入Redis 30分钟
+    redis.set[BindingRelation](s"$REDIS_KEY_BINDING${cmd.call }", BindingRelation(cmd.id, cmd.call, cmd.called, cmd.thirdId),
+      Some(Duration.ofMinutes(30L).getSeconds))
+    Some(CallUpRecord.bind(cmd))
   }
 
   //存在状态下操作
@@ -51,21 +57,27 @@ class CallUpRecordEntity extends PersistentEntity
     //持久化挂断事件回复挂断请求参数
     case (_, ctx, state) => ctx.thenPersist(HungUp)
     {
-      _ => state.data.map(d => MoorRequest.HangUp(d.callId, None, d.id))
+      _ => state.map(d => MoorRequest.HangUp(d.callId, None, d.id))
     }
   }
   //处理更新命令
   .onCommand[Update, Option[CallUpRecord]]
   {
     //持久化更新事件回复聚合根
-    case ((cmd: Update), ctx, state) => ctx.thenPersist(Updated(cmd))(_ => ctx.reply(state.data))
+    case ((cmd: Update), ctx, state) => ctx.thenPersist(Updated(cmd))(_ => ctx.reply(state))
   }
   .onEvent
   {
-    //不处理挂断事件
-    case (_: HungUp.type, state) => state
+    case (_: HungUp.type, state) => state.map
+    {
+      d =>
+        //删除Redis绑定关系
+      val redis = RedisClient(actorSystem).client
+      redis.del(s"$REDIS_KEY_BINDING${d.call }")
+      d
+    }
     //更新聚合根
-    case (event: Updated, state) => state.update(event)
+    case (event: Updated, state) => state.map(_.update(event))
   }
 }
 
@@ -88,6 +100,7 @@ class SmsRecordEntity extends PersistentEntity
     case _    => nonexistence
   }
 
+  //不存在状态下操作
   def nonexistence = Actions()
   //处理创建命令
   .onCommand[Create, String]
@@ -98,6 +111,6 @@ class SmsRecordEntity extends PersistentEntity
   .onEvent
   {
     //创建聚合根
-    case (event: Created, state) => state
+    case (Created(cmd), _) => Some(SmsRecord(cmd.id, cmd.messageId, cmd.mobile, cmd.smsType, cmd.isSuccess, cmd.createTime, cmd.updateTime))
   }
 }

@@ -5,6 +5,7 @@ import com.oasis.osiris.tool.functional.Lift.ops._
 import play.api.http.HeaderNames
 import play.api.libs.json.{Format, Json, Writes}
 import play.api.libs.ws._
+
 import scala.concurrent.ExecutionContext
 
 object MoorRequest
@@ -27,6 +28,7 @@ class MoorClient(ws: WSClient)(implicit ec: ExecutionContext)
 {
   import MoorRequest._
   import play.api.libs.json.Json
+
   /**
     * 容联七陌鉴权 请求头部分
     * Base64编码(账户Id+冒号+时间戳)

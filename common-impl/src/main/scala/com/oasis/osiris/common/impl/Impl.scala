@@ -6,6 +6,7 @@ import com.oasis.osiris.common.api.CommonService
 import com.oasis.osiris.common.impl.client.{MoorClient, SmsClient}
 import com.oasis.osiris.tool.Api
 import com.oasis.osiris.tool.functional.Lift.ops._
+
 import scala.concurrent.ExecutionContext
 
 /**
@@ -25,14 +26,14 @@ class CommonServiceImpl
   import com.lightbend.lagom.scaladsl.server.ServerServiceCall
   import com.oasis.osiris.common.impl.client.RedisClient
   import com.oasis.osiris.tool.{IdWorker, Restful}
-  import scala.reflect.ClassTag
 
-  //手机号绑定关系在Redis的Key
-  private[this] val REDIS_KEY_BINDING = "binding=>"
+  import scala.reflect.ClassTag
+  import scala.util.Random
 
   override def bindCallUpRecord = v2(ServerServiceCall
   {
     (r, d) =>
+
     for
     {
       //Id生成
@@ -41,7 +42,7 @@ class CommonServiceImpl
       cmd <- CallUpRecordCommand.Bind(id, d.thirdId, d.call, d.called, d.maxCallTime, d.noticeUri).liftF
       //发送绑定命令
       _ <- refFor[CallUpRecordEntity](id).ask(cmd)
-      //Http201响应
+       //Http201响应
     } yield Restful.created(r)(id)
   })
 
@@ -67,7 +68,7 @@ class CommonServiceImpl
     _ =>
     for
     {
-      redis <- RedisClient(actorSystem).client
+      redis <- RedisClient(actorSystem).client.liftF
       //被呼号
       called <- redis.get[BindingRelation](s"$REDIS_KEY_BINDING$mobile")
       .map
@@ -91,13 +92,13 @@ class CommonServiceImpl
       {
         log.info("通话事件推送更新回调")
         log.info("+---------------------------------------------------------------------------------------------------------------------------+")
-        param.foreach
+        param.toSeq.sorted.foreach
         { case (k, v) => log.info(s" $k => $v") }
         log.info("+---------------------------------------------------------------------------------------------------------------------------+")
         //Map参数构建更新命令
         CallUpRecordCommand.Update.fromMap(param)
       }.liftF
-      redis <- RedisClient(actorSystem).client
+      redis <- RedisClient(actorSystem).client.liftF
       //电话绑定关系Id
       id <- redis.get[BindingRelation](s"$REDIS_KEY_BINDING${cmd.call}")
       .map
@@ -105,7 +106,6 @@ class CommonServiceImpl
         case Some(d) => d.callUpRecordId
         case _ => throw NotFound(s"手机号${cmd.call}")
       }
-//      newCmd <- CallUpRecordCommand.Update(Some(id),)
       //发送更新命令
       _ <- refFor[CallUpRecordEntity](id).ask(cmd)
       //Http200响应
@@ -116,15 +116,27 @@ class CommonServiceImpl
   {
     (r, d) =>
     for
-      {
+    {
       //主键
       id <- IdWorker.liftF
-//      code <- d.smsType match
-//        {
-//
-//      }
+      //阿里短信唯一标识
+      messageId <- d.smsType.toApi match
+      {
+        //达人通知没有验证码
+        case SmsType.notice => smsClient.sendNotice(d.mobile)
+        //其他都需要4位验证码
+        case t =>
+        val code = createCode(4)
+        t match
+        {
+          //支付验证码
+          case SmsType.payment => smsClient.sendPayment(d.mobile)(code)
+          //剩下的目前都发送身份验证验证码
+          case _ => smsClient.sendAuthentication(d.mobile)(code)
+        }
+      }
       //创建命令
-      cmd <- SmsRecordCommand.Create(id, d.mobile, d.smsType, isSuccess = false).liftF
+      cmd <- SmsRecordCommand.Create(id, d.mobile, d.smsType.toApi, isSuccess = false, messageId).liftF
       //发送创建命令
       _ <- refFor[SmsRecordEntity](id).ask(cmd)
       //Http201响应
@@ -144,6 +156,9 @@ class CommonServiceImpl
     case (map, Array(x, y)) => map + (x -> y)
     case (map, _)           => map
   }
+
+  //产生指定位数纯数字随机码
+  private[this] def createCode(i: Int) = Stream.iterate(Random.nextInt(10) + "", i)(_ => Random.nextInt(10) + "").reduce(_ + _)
 
   /**
     * 主键获取聚合根

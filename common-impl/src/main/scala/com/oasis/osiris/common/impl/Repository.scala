@@ -15,10 +15,12 @@ import scala.concurrent.ExecutionContext
 class CallUpRecordRepository(session: CassandraSession)(implicit ec: ExecutionContext)
 {
   def gets = for
-    {
+  {
     list <- session.selectAll("SELECT * FROM call_up_record")
     data <- list.map(row =>
     {
+      import com.oasis.osiris.common.impl.CallEventStatus.CallEventStatus
+      import com.oasis.osiris.common.impl.CallStatus.CallStatus
       import com.oasis.osiris.common.impl.CallType.CallType
       val id = row.getString("id")
       val call = row.getString("call")
@@ -34,10 +36,13 @@ class CallUpRecordRepository(session: CassandraSession)(implicit ec: ExecutionCo
       val noticeUri = row.getImplicitly[Option[String]]("notice_uri")
       val thirdId = row.getImplicitly[Option[String]]("third_id")
       val callId = row.getImplicitly[Option[String]]("call_id")
+      val status = row.getImplicitly[Option[CallStatus]]("status")
+      val eventStatus = row.getImplicitly[Option[CallEventStatus]]("event_status")
       val createTime = row.getTimestamp("create_time").toInstant
       val updateTime = row.getTimestamp("update_time").toInstant
-      CallUpRecord(id, call, called, maxCallTime, callTime,callType, ringTime, beginTime, endTime, recordFile, fileServer, noticeUri, thirdId, callId,
-        createTime, updateTime)
+      CallUpRecord(id, call, called, maxCallTime, callTime, callType, ringTime, beginTime, endTime, recordFile, fileServer, noticeUri, thirdId,
+        callId, status, eventStatus
+        , createTime, updateTime)
     }).liftF
   } yield data
 }

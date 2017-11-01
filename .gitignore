@@ -174,3 +174,4 @@ local.properties
 .scala_dependencies
 .worksheet
 
+!/common-impl/src/main/scala/com/oasis/osiris/common/impl/Aggregate.scala

@@ -27,13 +27,14 @@ object TypeTokens
 
   // TypeTokens for AnyVal types (primitive types) need to be wrapped
 
-  val boolean: TypeToken[Boolean] = TypeToken.of(classOf[Boolean]).wrap()
-  val byte   : TypeToken[Byte]    = TypeToken.of(classOf[Byte]).wrap()
-  val short  : TypeToken[Short]   = TypeToken.of(classOf[Short]).wrap()
-  val int    : TypeToken[Int]     = TypeToken.of(classOf[Int]).wrap()
-  val long   : TypeToken[Long]    = TypeToken.of(classOf[Long]).wrap()
-  val float  : TypeToken[Float]   = TypeToken.of(classOf[Float]).wrap()
-  val double : TypeToken[Double]  = TypeToken.of(classOf[Double]).wrap()
+  val boolean: TypeToken[Boolean]           = TypeToken.of(classOf[Boolean]).wrap()
+  val byte   : TypeToken[Byte]              = TypeToken.of(classOf[Byte]).wrap()
+  val short  : TypeToken[Short]             = TypeToken.of(classOf[Short]).wrap()
+  val int    : TypeToken[Int]               = TypeToken.of(classOf[Int]).wrap()
+  val long   : TypeToken[Long]              = TypeToken.of(classOf[Long]).wrap()
+  val float  : TypeToken[Float]             = TypeToken.of(classOf[Float]).wrap()
+  val double : TypeToken[Double]            = TypeToken.of(classOf[Double]).wrap()
+  val enum   : TypeToken[Enumeration#Value] = TypeToken.of(classOf[Enumeration#Value]).wrap()
 
   def seqOf[T](eltType: Class[T]): TypeToken[immutable.Seq[T]] =
   {

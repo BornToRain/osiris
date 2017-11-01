@@ -1,7 +1,6 @@
 package com.oasis.osiris.common.impl
 
 import java.time.Instant
-
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.ReplyType
 import com.oasis.osiris.common.impl.CallEventStatus.CallEventStatus
 import com.oasis.osiris.common.impl.CallStatus.CallStatus
@@ -18,10 +17,11 @@ sealed trait CallUpRecordCommand[Reply] extends ReplyType[Reply]
 object CallUpRecordCommand
 {
   import com.oasis.osiris.common.impl.client.MoorRequest
+  import com.oasis.osiris.common.impl.CallType.CallType
 
   //绑定命令
   case class Bind(
-    id         : String,
+    id: String,
     thirdId    : Option[String],
     call       : String,
     called     : String,
@@ -39,10 +39,10 @@ object CallUpRecordCommand
   //更新命令
   case class Update
   (
-    id         : Option[String],
+    id: Option[String],
     call       : String,
     called     : String,
-    callType   : String,
+    callType   : CallType,
     ringTime   : Option[Instant],
     beginTime  : Option[Instant],
     endTime    : Option[Instant],
@@ -64,9 +64,10 @@ object CallUpRecordCommand
       val ringTime = map.get("Ring").map(DateTool.toInstant)
       val beginTime = map.get("Begin").map(DateTool.toInstant)
       val endTime = map.get("End").map(DateTool.toInstant)
+      val callType = CallType.withName(map("CallType"))
       val status = CallStatus.withName(map("State"))
       val eventStatus = CallEventStatus.withName(map("CallState"))
-      apply(map.get("ActionID"), map("CallNo"), map("CalledNo"), map("CallType"), ringTime, beginTime, endTime, status, eventStatus,
+      apply(map.get("ActionID"), map("CallNo"), map("CalledNo"), callType, ringTime, beginTime, endTime, status, eventStatus,
         map.get("RecordFile"),
         map.get("FileServer"), map.get("CallID"))
     }
@@ -85,13 +86,15 @@ sealed trait SmsRecordCommand[Reply] extends ReplyType[Reply]
 
 object SmsRecordCommand
 {
+  import com.oasis.osiris.common.impl.SmsType.SmsType
 
   //创建
   case class Create(
     id        : String,
     mobile    : String,
-    smsType   : String,
+    smsType   : SmsType,
     isSuccess : Boolean,
+    messageId : String,
     createTime: Instant = Instant.now,
     updateTime: Instant = Instant.now) extends SmsRecordCommand[String]
 

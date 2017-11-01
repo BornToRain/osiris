@@ -2,17 +2,13 @@ package com.oasis.osiris.common.impl
 
 import java.time.Instant
 import java.util.Date
-
 import akka.Done
-import akka.actor.ActorSystem
 import akka.event.slf4j.SLF4JLogging
 import com.datastax.driver.core.PreparedStatement
 import com.lightbend.lagom.scaladsl.persistence.{EventStreamElement, ReadSideProcessor}
 import com.lightbend.lagom.scaladsl.persistence.cassandra.{CassandraReadSide, CassandraSession}
-import com.oasis.osiris.common.impl.client.RedisClient
 import com.oasis.osiris.tool.db.{IntCodec, OptionCodec}
 import com.oasis.osiris.tool.db.Implicits._
-
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
 /**
@@ -22,13 +18,12 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 class CallUpRecordEventProcessor
 (
   session: CassandraSession,
-  readSide: CassandraReadSide,
-  actorSystem: ActorSystem
+  readSide: CassandraReadSide
 )(implicit ec: ExecutionContext) extends ReadSideProcessor[CallUpRecordEvent] with SLF4JLogging
 {
   import com.oasis.osiris.common.impl.CallUpRecordEvent._
 
-  private[this] val bindCallUpRecordPro = Promise[PreparedStatement]
+  private[this] val bindCallUpRecordPro   = Promise[PreparedStatement]
   private[this] val updateCallUpRecordPro = Promise[PreparedStatement]
 
   //当前集群
@@ -42,12 +37,13 @@ class CallUpRecordEventProcessor
   override def buildHandler = readSide.builder[CallUpRecordEvent]("callUpRecordEventOffSet")
   .setGlobalPrepare(() => createTable)
   .setPrepare(_ => prepare)
-  .setEventHandler[Bound](bind)
+  .setEventHandler[Bound](bound)
+  .setEventHandler[Updated](updated)
   .build
 
   //数据库表创建
   private[this] def createTable = for
-  {
+    {
     //通话记录表
     _ <- session.executeCreateTable
     {
@@ -68,9 +64,11 @@ class CallUpRecordEventProcessor
         | notice_uri text,
         | third_id text,
         | call_id text,
+        | status text,
+        | event_status text,
         | create_time timestamp,
         | update_time timestamp
-        | )
+        |)
       """.stripMargin
     }
   } yield Done
@@ -81,42 +79,76 @@ class CallUpRecordEventProcessor
     getCluster.map(_.getConfiguration.getCodecRegistry.register(codecs: _*))
     //绑定通话记录SQL
     bindCallUpRecordPro.completeWith(session
-    .prepare("""INSERT INTO call_up_record(id,call,called,max_call_time,call_type,notice_uri,third_id,create_time,update_time) VALUES(?,?,?,?,?,?,?,?,?)"""))
+    .prepare(
+      """INSERT INTO call_up_record(id,call,called,max_call_time,call_type,notice_uri,third_id,create_time,update_time) VALUES(?,?,?,?,?,?,?,?,?)"""))
     //更新通话记录SQL
     updateCallUpRecordPro.completeWith(session.prepare(
       """
         |UPDATE call_up_record
         |SET
-        |
+        | call_type = ?,
+        | ring_time = ?,
+        | begin_time = ?,
+        | end_time = ?,
+        | record_file = ?,
+        | file_server = ?,
+        | third_id = ?,
+        | call_id = ?,
+        | status = ?,
+        | event_status = ?,
+        | update_time = ?
+        |WHERE id = ?
       """.stripMargin))
     Future(Done)
   }
 
   //绑定电话关系
-  private[this] def bind(event: EventStreamElement[Bound]) =
+  private[this] def bound(event: EventStreamElement[Bound]) =
   {
-    import java.time.Duration
     log.info("持久化电话绑定关系到读边")
     val cmd = event.event.cmd
     for
-    {
-      //redis客户端
-      redis <- RedisClient(actorSystem).client
-      //绑定关系存入Redis 30分钟
-      _ <- redis.set[BindingRelation]("binding=>"+cmd.call,BindingRelation(cmd.id,cmd.call,cmd.called,cmd.thirdId),Some(Duration.ofMinutes(30L).getSeconds))
+      {
       //通话记录插入
       data <- bindCallUpRecordPro.future.map
       {
-        d =>
-        val data = d.bind
-        data.setString("id", cmd.id)
-        data.setString("call", cmd.call)
-        data.setString("called", cmd.called)
-        data.setImplicitly("max_call_time", cmd.maxCallTime)
-        data.setImplicitly("notice_uri", cmd.noticeUri)
-        data.setImplicitly("third_id", cmd.thirdId)
-        data.setTimestamp("create_time", Date.from(cmd.createTime))
-        data.setTimestamp("update_time", Date.from(cmd.updateTime))
+        ps =>
+        val d = ps.bind
+        d.setString("id", cmd.id)
+        d.setString("call", cmd.call)
+        d.setString("called", cmd.called)
+        d.setImplicitly("max_call_time", cmd.maxCallTime)
+        d.setImplicitly("notice_uri", cmd.noticeUri)
+        d.setImplicitly("third_id", cmd.thirdId)
+        d.setTimestamp("create_time", Date.from(cmd.createTime))
+        d.setTimestamp("update_time", Date.from(cmd.updateTime))
+      }
+    } yield Vector(data)
+  }
+
+  //更新通话记录
+  private[this] def updated(event: EventStreamElement[Updated]) =
+  {
+    log.info("更新通话记录")
+    val cmd = event.event.cmd
+    for
+      {
+      //通话记录更新
+      data <- updateCallUpRecordPro.future.map
+      {
+        ps =>
+        val d = ps.bind
+        d.setString("call_type", cmd.callType.toString)
+        d.setImplicitly("ring_time", cmd.ringTime)
+        d.setImplicitly("begin_time", cmd.beginTime)
+        d.setImplicitly("end_time", cmd.endTime)
+        d.setImplicitly("record_file", cmd.recordFile)
+        d.setImplicitly("file_server", cmd.fileServer)
+        d.setImplicitly("call_id", cmd.callId)
+        d.setString("status", cmd.status.toString)
+        d.setString("event_status", cmd.eventStatus.toString)
+        d.setTimestamp("update_time", Date.from(cmd.updateTime))
+        d.setString("id", event.entityId)
       }
     } yield Vector(data)
   }
@@ -142,7 +174,7 @@ class SmsRecordEventProcessor
   .build
 
   private[this] def createTable = for
-  {
+    {
     //短信记录表
     _ <- session.executeCreateTable
     {
@@ -178,19 +210,18 @@ class SmsRecordEventProcessor
     val cmd = event.event.cmd
     for
       {
-      a <- insertSmsRecordPro.future.map
+      data <- insertSmsRecordPro.future.map
       {
         ps =>
         val d = ps.bind
-          val d1:Option[String] = Some("123")
         d.setString("id", cmd.id)
-        d.setImplicitly("message_id",d1 )
+        d.setString("message_id", cmd.messageId)
         d.setString("mobile", cmd.mobile)
-        d.setString("sms_type", cmd.smsType)
+        d.setString("sms_type", cmd.smsType.toString)
         d.setBool("is_success", cmd.isSuccess)
         d.setTimestamp("create_time", Date.from(cmd.createTime))
         d.setTimestamp("update_time", Date.from(cmd.updateTime))
       }
-    } yield Vector(a)
+    } yield Vector(data)
   }
 }

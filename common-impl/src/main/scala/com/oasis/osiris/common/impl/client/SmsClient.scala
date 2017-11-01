@@ -7,15 +7,44 @@ class SmsClient(implicit ec: ExecutionContext)
 {
   import com.aliyun.mns.client.CloudAccount
   import com.aliyun.mns.model.{BatchSmsAttributes, MessageAttributes, RawTopicMessage}
-  import org.slf4j.LoggerFactory
-  private[this] val log = LoggerFactory.getLogger(classOf[SmsClient])
+  import com.oasis.osiris.common.impl.client.SmsClient.Template
 
-  def sendPayment(code:String)(mobile:String) = send("SMS_96870043")(mobile)(Map("code" -> code))(isPromotion = false)
+  import scala.concurrent.Future
+
+  //达人通知短信
+  def sendNotice(mobile:String) = sendSms(mobile)(Template.notice)
+  //支付短信
+  def sendPayment(mobile:String)(code:String) = sendCaptcha(mobile)(code)(Template.payment)
+  //身份验证短信
+  def sendAuthentication(mobile:String)(code:String) = sendCaptcha(mobile)(code)(Template.authentication)
+  //发送有验证码短信
+  private[this] def sendCaptcha(mobile: String)(code: String)(templateId: String) =
+  {
+    val f = send(mobile)(templateId)_
+
+    templateId match
+    {
+      //身份验证
+      case Template.authentication => f(Map("code" -> code, "product" -> SmsClient.sign))(false)
+      //支付
+      case Template.payment => f(Map("code" -> code))(false)
+    }
+  }
+  //发送无验证码短信
+  private[this] def sendSms(mobile: String)(templateId: String) =
+  {
+    val f = send(mobile)(templateId)_
+    templateId match
+    {
+      //达人通知
+      case Template.notice => f(Map.empty)(false)
+    }
+  }
 
   /**
-    * 阿里云短信SDK
+    * 阿里云短信SDK发送短信
     */
-  private[this] def send(templateId: String)(mobile: String)(map: Map[String, String] = Map.empty)(isPromotion: Boolean = false) = for
+  private[this] def send(mobile: String)(templateId: String)(map: Map[String, String] = Map.empty)(isPromotion: Boolean = false):Future[String] = for
   {
     //Step 1. 获取主题引用
     account <- new CloudAccount(SmsClient.key, SmsClient.secret, SmsClient.endPoint).liftF
@@ -46,7 +75,7 @@ class SmsClient(implicit ec: ExecutionContext)
       msgAttributes
     }.liftF
     //Step 4. 发布SMS消息
-    result <- topic.publishMessage(msg,msgAttributes).liftF
+    result <- topic.publishMessage(msg, msgAttributes).getMessageId.liftF
   } yield result
 }
 
@@ -68,7 +97,7 @@ object SmsClient
   object Template
   {
     //验证码模版
-    lazy val captcha = "SMS_71161028"
+    lazy val authentication = "SMS_71161028"
     //支付模版
     lazy val payment = "SMS_96870043"
     //达人通知模版

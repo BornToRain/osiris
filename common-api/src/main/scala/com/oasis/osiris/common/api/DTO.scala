@@ -1,6 +1,5 @@
 package com.oasis.osiris.common.api
 
-import com.oasis.osiris.tool.JSONTool._
 import play.api.libs.json.{Format, Json}
 
 /**
@@ -18,31 +17,16 @@ object MoorDTO
     implicit val format: Format[Binding] = Json.format
   }
 
-  //通话状态
-  object CallStatus extends Enumeration
-  {
-    type CallStatus = Value
-    //已接、振铃未接听、ivr放弃、排队放弃、黑名单、留言
-    val dealing, notDeal, leak, queueLeak, blackList, voicemail = Value
-    implicit val format: Format[CallStatus] = enumFormat(CallStatus)
-  }
-
-  //通话事件状态
-  object CallEventStatus extends Enumeration
-  {
-    type CallEventStatus = Value
-    val Ring, Ringing, Link, Hangup, Unlink = Value
-    implicit val format: Format[CallEventStatus] = enumFormat(CallEventStatus)
-  }
-
 }
 
 //短信DTO
 object SmsDTO
 {
+  import com.oasis.osiris.common.api.SmsDTO.SmsType.SmsType
+  import com.oasis.osiris.tool.JSONTool.enumFormat
 
   //发送
-  case class Send(mobile: String, smsType: String)
+  case class Send(mobile: String, smsType: SmsType)
 
   object Send
   {
@@ -50,11 +34,20 @@ object SmsDTO
   }
 
   //验证
-  case class Validation(mobile: String, smsType: String, captcha: String)
+  case class Validation(mobile: String, smsType: SmsType, captcha: String)
 
   object Validation
   {
     implicit val format: Format[Validation] = Json.format
+  }
+
+  //短信类型
+  object SmsType extends Enumeration
+  {
+    type SmsType = Value
+    //登录、注册、邀请、交付、达人通知
+    val login, register, invitation, payment, notice = Value
+    implicit val format: Format[SmsType] = enumFormat(SmsType)
   }
 
 }

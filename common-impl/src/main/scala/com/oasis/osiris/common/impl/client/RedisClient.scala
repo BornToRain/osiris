@@ -3,14 +3,12 @@ package com.oasis.osiris.common.impl.client
 import akka.actor.ActorSystem
 import redis.{RedisClient => Redis}
 
-import scala.concurrent.{ExecutionContext, Future}
-
 /**
   * Redis客户端
   */
-case class RedisClient(actorSystem: ActorSystem)(implicit ec:ExecutionContext)
+case class RedisClient(actorSystem: ActorSystem)
 {
-  lazy val client = Future(Redis(RedisClient.host, RedisClient.port, Some(RedisClient.password))(actorSystem))
+  lazy val client = Redis(RedisClient.host, RedisClient.port, Some(RedisClient.password))(actorSystem)
 }
 
 object RedisClient
