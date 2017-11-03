@@ -5,7 +5,6 @@ import com.oasis.osiris.tool.functional.Lift.ops._
 import play.api.http.HeaderNames
 import play.api.libs.json.{Format, Json, Writes}
 import play.api.libs.ws._
-
 import scala.concurrent.ExecutionContext
 
 object MoorRequest
@@ -52,7 +51,7 @@ class MoorClient(ws: WSClient)(implicit ec: ExecutionContext)
     timeStamp <- DateTool.datetimeStamp.liftF
     auth <- authenticationHeader(timeStamp).liftF
     sig <- authenticationParameter(timeStamp).liftF
-    post <- ws.url(s"${MoorClient.baseUri }$uri")
+    post <- ws.url(s"${MoorClient.gateway }$uri")
     .withQueryString("sig" -> sig)
     .withHeaders(HeaderNames.AUTHORIZATION -> auth)
     .post(Json.toJson(data))
@@ -65,10 +64,11 @@ class MoorClient(ws: WSClient)(implicit ec: ExecutionContext)
 object MoorClient
 {
   import com.typesafe.config.ConfigFactory
+  private[this]        val config  = ConfigFactory.load
   //容联七陌账号
-  lazy val account = ConfigFactory.load.getString("7moor.account")
+  private[MoorClient$] val account = config.getString("7moor.account")
   //容联七陌密钥
-  lazy val secret  = ConfigFactory.load.getString("7moor.secret")
+  private[MoorClient$] val secret  = config.getString("7moor.secret")
   //容联七陌网关
-  lazy val baseUri = "http://apis.7moor.com/"
+  private[MoorClient$] val gateway = "http://apis.7moor.com/"
 }

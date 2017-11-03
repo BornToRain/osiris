@@ -33,7 +33,6 @@ class CommonServiceImpl
   override def bindCallUpRecord = v2(ServerServiceCall
   {
     (r, d) =>
-
     for
     {
       //Id生成

@@ -14,7 +14,8 @@ case class RedisClient(actorSystem: ActorSystem)
 object RedisClient
 {
   import com.typesafe.config.ConfigFactory
-  lazy val host     = ConfigFactory.load.getString("redis.host")
-  lazy val port     = ConfigFactory.load.getInt("redis.port")
-  lazy val password = ConfigFactory.load.getString("redis.password")
+  private[this]         val config   = ConfigFactory.load
+  private[RedisClient$] val host     = config.getString("redis.host")
+  private[RedisClient$] val port     = config.getInt("redis.port")
+  private[RedisClient$] val password = config.getString("redis.password")
 }

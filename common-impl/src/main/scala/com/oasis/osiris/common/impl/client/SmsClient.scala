@@ -12,39 +12,42 @@ class SmsClient(implicit ec: ExecutionContext)
   import scala.concurrent.Future
 
   //达人通知短信
-  def sendNotice(mobile:String) = sendSms(mobile)(Template.notice)
-  //支付短信
-  def sendPayment(mobile:String)(code:String) = sendCaptcha(mobile)(code)(Template.payment)
-  //身份验证短信
-  def sendAuthentication(mobile:String)(code:String) = sendCaptcha(mobile)(code)(Template.authentication)
-  //发送有验证码短信
-  private[this] def sendCaptcha(mobile: String)(code: String)(templateId: String) =
-  {
-    val f = send(mobile)(templateId)_
+  def sendNotice(mobile: String) = sendSms(mobile)(Template.notice)
 
-    templateId match
+  //支付短信
+  def sendPayment(mobile: String)(code: String) = sendCaptcha(mobile)(code)(Template.payment)
+
+  //身份验证短信
+  def sendAuthentication(mobile: String)(code: String) = sendCaptcha(mobile)(code)(Template.authentication)
+
+  //发送有验证码短信
+  private[this] def sendCaptcha(mobile: String)(code: String)(templateId: String) = for
+  {
+    f <- send(mobile)(templateId) _.liftF
+    result <- templateId match
     {
       //身份验证
       case Template.authentication => f(Map("code" -> code, "product" -> SmsClient.sign))(false)
       //支付
       case Template.payment => f(Map("code" -> code))(false)
     }
-  }
+  } yield result
+
   //发送无验证码短信
-  private[this] def sendSms(mobile: String)(templateId: String) =
+  private[this] def sendSms(mobile: String)(templateId: String) = for
   {
-    val f = send(mobile)(templateId)_
-    templateId match
+    f <- send(mobile)(templateId) _.liftF
+    result <- templateId match
     {
       //达人通知
       case Template.notice => f(Map.empty)(false)
     }
-  }
+  } yield result
 
   /**
     * 阿里云短信SDK发送短信
     */
-  private[this] def send(mobile: String)(templateId: String)(map: Map[String, String] = Map.empty)(isPromotion: Boolean = false):Future[String] = for
+  private[this] def send(mobile: String)(templateId: String)(map: Map[String, String] = Map.empty)(isPromotion: Boolean = false): Future[String] = for
   {
     //Step 1. 获取主题引用
     account <- new CloudAccount(SmsClient.key, SmsClient.secret, SmsClient.endPoint).liftF
@@ -82,26 +85,27 @@ class SmsClient(implicit ec: ExecutionContext)
 object SmsClient
 {
   import com.typesafe.config.ConfigFactory
+  private[this]       val config   = ConfigFactory.load
   //阿里云key
-  lazy val key      = ConfigFactory.load.getString("sms.key")
+  private[SmsClient$] val key      = config.getString("sms.key")
   //阿里云密钥
-  lazy val secret   = ConfigFactory.load.getString("sms.secret")
+  private[SmsClient$] val secret   = config.getString("sms.secret")
   //阿里云短信网关
-  lazy val endPoint = "https://1126869279253886.mns.cn-beijing.aliyuncs.com/"
+  private[SmsClient$] val endPoint = "https://1126869279253886.mns.cn-beijing.aliyuncs.com/"
   //阿里云短信主题
-  lazy val topic    = "sms.topic-cn-beijing"
+  private[SmsClient$] val topic    = "sms.topic-cn-beijing"
   //短信签名
-  lazy val sign     = "泓华医疗"
+  private[SmsClient$] val sign     = "泓华医疗"
 
   //阿里云短信模版
   object Template
   {
     //验证码模版
-    lazy val authentication = "SMS_71161028"
+    private[Template$] lazy val authentication = "SMS_71161028"
     //支付模版
-    lazy val payment = "SMS_96870043"
+    private[Template$] lazy val payment        = "SMS_96870043"
     //达人通知模版
-    lazy val notice  = "SMS_103945002"
+    private[Template$] lazy val notice         = "SMS_103945002"
   }
 
 }

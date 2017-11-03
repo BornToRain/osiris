@@ -1,6 +1,7 @@
 package com.oasis.osiris.common.impl
 
 import java.time.Instant
+
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity.ReplyType
 import com.oasis.osiris.common.impl.CallEventStatus.CallEventStatus
 import com.oasis.osiris.common.impl.CallStatus.CallStatus
@@ -103,7 +104,6 @@ object SmsRecordCommand
   {
     implicit val format: Format[Create] = Json.format
   }
-
 }
 
 

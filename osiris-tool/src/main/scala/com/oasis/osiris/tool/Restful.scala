@@ -9,18 +9,19 @@ import play.api.http.HeaderNames
   */
 object Restful
 {
+  import play.api.http.ContentTypes
   type Response = (ResponseHeader, Done)
 
   /**
     * Http资源访问成功 => 状态码200
     */
-  def ok: Response = (ResponseHeader(200, MessageProtocol(Some("application/json"), Some("UTF-8"), None), Vector.empty), Done)
+  def ok: Response = (ResponseHeader(200, MessageProtocol(Some(ContentTypes.JSON), Some("UTF-8"), None), Vector.empty), Done)
 
   /**
     * Http资源创建成功 => 状态码201
     */
   def created(request: RequestHeader)(id: String): Response = (ResponseHeader(201,
-    MessageProtocol(Some("application/json"), Some("UTF-8"), None), Vector.empty)
+    MessageProtocol(Some(ContentTypes.JSON), Some("UTF-8"), None), Vector.empty)
   .withHeader(HeaderNames.LOCATION, request.uri + "/" + id), Done)
 
   /**
