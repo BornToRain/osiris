@@ -21,7 +21,7 @@ object CallUpRecordCommand
 
   //绑定命令
   case class Bind(
-    id: String,
+    id         : String,
     thirdId    : Option[String],
     call       : String,
     called     : String,
@@ -39,7 +39,7 @@ object CallUpRecordCommand
   //更新命令
   case class Update
   (
-    id: Option[String],
+    id         : Option[String],
     call       : String,
     called     : String,
     callType   : CallType,
@@ -95,6 +95,7 @@ object SmsRecordCommand
     smsType   : SmsType,
     isSuccess : Boolean,
     messageId : String,
+    code      : Option[String],
     createTime: Instant = Instant.now,
     updateTime: Instant = Instant.now) extends SmsRecordCommand[String]
 

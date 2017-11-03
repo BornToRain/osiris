@@ -115,35 +115,53 @@ class CommonServiceImpl
   override def sms = v2(ServerServiceCall
   {
     (r, d) =>
+    import com.oasis.osiris.common.impl.SmsType.SmsType
     for
     {
       //主键
       id <- IdWorker.liftF
+      //验证码
+      code <- createCode(4).liftF
       //阿里短信唯一标识
-      messageId <- d.smsType.toApi match
+      messageId <- d.smsType.toDomain[SmsType] match
       {
         //达人通知没有验证码
-        case SmsType.notice => smsClient.sendNotice(d.mobile)
+        case SmsType.notice  => smsClient.sendNotice(d.mobile)
         //其他都需要4位验证码
-        case t =>
-        val code = createCode(4)
-        t match
-        {
-          //支付验证码
-          case SmsType.payment => smsClient.sendPayment(d.mobile)(code)
-          //剩下的目前都发送身份验证验证码
-          case _ => smsClient.sendAuthentication(d.mobile)(code)
-        }
+        //支付验证码
+        case SmsType.payment => smsClient.sendPayment(d.mobile)(code)
+        //剩下的目前都发送身份验证验证码
+        case _               => smsClient.sendAuthentication(d.mobile)(code)
       }
       //创建命令
-      cmd <- SmsRecordCommand.Create(id, d.mobile, d.smsType.toApi, isSuccess = false, messageId).liftF
+      cmd <- SmsRecordCommand.Create(id, d.mobile, d.smsType.toDomain, isSuccess = false, messageId,Some(code)).liftF
       //发送创建命令
       _ <- refFor[SmsRecordEntity](id).ask(cmd)
       //Http201响应
     } yield Restful.created(r)(id)
   })
 
-  override def smsValidation = ???
+  override def smsValidation = v2(ServerServiceCall
+  {
+    d =>
+    for
+    {
+      //Redis客户端
+      redis <- RedisClient(actorSystem).client.liftF
+      //验证码返回结果
+      result <- redis.get[String](s"${d.smsType }=>${d.mobile }").map
+      {
+        case Some(x) if x == d.captcha => true
+        case _                         => false
+      }
+    } yield result
+  })
+
+  override def smsSuccess = ???
+
+  override def smsFail = ???
+
+  override def smsReply = ???
 
   /**
     * 从QueryString获取Map集合参数
@@ -157,11 +175,9 @@ class CommonServiceImpl
     case (map, _)           => map
   }
 
-  //产生指定位数纯数字随机码
+  //产生指定位数纯整数随机码
   private[this] def createCode(i: Int) = Stream.iterate(Random.nextInt(10) + "", i)(_ => Random.nextInt(10) + "").reduce(_ + _)
 
-  /**
-    * 主键获取聚合根
-    */
+  //主键获取聚合根
   private[this] def refFor[T <: PersistentEntity : ClassTag](id: String) = registry.refFor[T](id)
 }

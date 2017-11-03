@@ -10,7 +10,6 @@ import com.lightbend.lagom.scaladsl.persistence.PersistentEntity
 class CallUpRecordEntity(actorSystem: ActorSystem) extends PersistentEntity
 {
   import java.time.Duration
-
   import com.oasis.osiris.common.impl.CallUpRecordCommand._
   import com.oasis.osiris.common.impl.CallUpRecordEvent._
   import com.oasis.osiris.common.impl.client.{MoorRequest, RedisClient}
@@ -82,10 +81,11 @@ class CallUpRecordEntity(actorSystem: ActorSystem) extends PersistentEntity
 }
 
 //短信记录持久化
-class SmsRecordEntity extends PersistentEntity
+class SmsRecordEntity(actorSystem: ActorSystem) extends PersistentEntity
 {
   import com.oasis.osiris.common.impl.SmsRecordCommand._
   import com.oasis.osiris.common.impl.SmsRecordEvent._
+  import com.oasis.osiris.common.impl.client.RedisClient
 
   override type Command = SmsRecordCommand[_]
   override type Event = SmsRecordEvent
@@ -106,7 +106,17 @@ class SmsRecordEntity extends PersistentEntity
   .onCommand[Create, String]
   {
     //持久化创建事件回复聚合根Id
-    case ((cmd: Create), ctx, _) => ctx.thenPersist(Created(cmd))(e => ctx.reply(e.cmd.id))
+    case ((cmd: Create), ctx, _) => ctx.thenPersist(Created(cmd))
+    {
+      e =>
+      cmd.code.map
+      {
+        val redis = RedisClient(actorSystem).client
+        //Redis记录用户与验证码关系 5分钟验证码过期
+        redis.set(s"${cmd.smsType }=>${cmd.mobile }", _, Some(300L))
+      }
+      ctx.reply(e.cmd.id)
+    }
   }
   .onEvent
   {

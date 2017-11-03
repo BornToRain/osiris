@@ -195,11 +195,10 @@ class SmsRecordEventProcessor
 
   private[this] def prepare =
   {
-    //绑定通话记录SQL
+    //短信记录SQL
     insertSmsRecordPro.completeWith(session.prepare(
       """INSERT INTO sms_record(id,message_id,mobile,sms_type,is_success,
         |create_time,update_time) VALUES(?,?,?,?,?,?,?)""".stripMargin))
-    //绑定关系SQL => 30min存活时间
     Future(Done)
   }
 
@@ -209,7 +208,7 @@ class SmsRecordEventProcessor
     log.info("持久化短信记录到读边")
     val cmd = event.event.cmd
     for
-      {
+    {
       data <- insertSmsRecordPro.future.map
       {
         ps =>

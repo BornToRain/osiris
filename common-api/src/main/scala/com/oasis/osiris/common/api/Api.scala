@@ -15,6 +15,9 @@ trait CommonService extends Service
   def callbackCallUpRecord: ServiceCall[NotUsed, Done]
   def sms: ServiceCall[SmsDTO.Send, Done]
   def smsValidation: ServiceCall[SmsDTO.Validation, Boolean]
+  def smsSuccess: ServiceCall[NotUsed, Done]
+  def smsFail: ServiceCall[NotUsed, Done]
+  def smsReply: ServiceCall[NotUsed, Done]
 
   import Service._
 
@@ -30,6 +33,12 @@ trait CommonService extends Service
     //发送验证码
     restCall(Method.POST, "/commons/sms", sms),
     //验证验证码
-    restCall(Method.POST, "/commons/sms/validation", smsValidation)
+    restCall(Method.POST, "/commons/sms/validation", smsValidation),
+    //短信发送成功
+    restCall(Method.POST, "/commons/sms/success", smsSuccess),
+    //短信发送失败
+    restCall(Method.POST, "/commons/sms/fail", smsFail),
+    //短信回复
+    restCall(Method.POST, "/commons/sms/reply", smsReply)
   ).withAutoAcl(true)
 }
