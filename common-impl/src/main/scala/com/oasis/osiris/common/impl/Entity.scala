@@ -1,18 +1,19 @@
 package com.oasis.osiris.common.impl
 
-import akka.actor.ActorSystem
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity
+import redis.RedisClient
 
 /**
   * 持久化
   */
 //通话记录持久化
-class CallUpRecordEntity(actorSystem: ActorSystem) extends PersistentEntity
+class CallUpRecordEntity(redis:RedisClient) extends PersistentEntity
 {
   import java.time.Duration
+
   import com.oasis.osiris.common.impl.CallUpRecordCommand._
   import com.oasis.osiris.common.impl.CallUpRecordEvent._
-  import com.oasis.osiris.common.impl.client.{MoorRequest, RedisClient}
+  import com.oasis.osiris.common.impl.client.MoorRequest
 
   override type Command = CallUpRecordCommand[_]
   override type Event = CallUpRecordEvent
@@ -41,7 +42,6 @@ class CallUpRecordEntity(actorSystem: ActorSystem) extends PersistentEntity
   {
     //创建聚合根
     case (Bound(cmd), _) =>
-    val redis = RedisClient(actorSystem).client
     //绑定关系存入Redis 30分钟
     redis.set[BindingRelation](s"$REDIS_KEY_BINDING${cmd.call }", BindingRelation(cmd.id, cmd.call, cmd.called, cmd.thirdId),
       Some(Duration.ofMinutes(30L).getSeconds))
@@ -71,7 +71,6 @@ class CallUpRecordEntity(actorSystem: ActorSystem) extends PersistentEntity
     {
       d =>
         //删除Redis绑定关系
-      val redis = RedisClient(actorSystem).client
       redis.del(s"$REDIS_KEY_BINDING${d.call }")
       d
     }
@@ -81,11 +80,10 @@ class CallUpRecordEntity(actorSystem: ActorSystem) extends PersistentEntity
 }
 
 //短信记录持久化
-class SmsRecordEntity(actorSystem: ActorSystem) extends PersistentEntity
+class SmsRecordEntity(redis:RedisClient) extends PersistentEntity
 {
   import com.oasis.osiris.common.impl.SmsRecordCommand._
   import com.oasis.osiris.common.impl.SmsRecordEvent._
-  import com.oasis.osiris.common.impl.client.RedisClient
 
   override type Command = SmsRecordCommand[_]
   override type Event = SmsRecordEvent
@@ -111,7 +109,6 @@ class SmsRecordEntity(actorSystem: ActorSystem) extends PersistentEntity
       e =>
       cmd.code.map
       {
-        val redis = RedisClient(actorSystem).client
         //Redis记录用户与验证码关系 5分钟验证码过期
         redis.set(s"${cmd.smsType }=>${cmd.mobile }", _, Some(300L))
       }

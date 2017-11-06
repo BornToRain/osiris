@@ -17,7 +17,9 @@ object SerializerRegistry extends JsonSerializerRegistry
     JsonSerializer[CallUpRecordEvent.Bound],
     JsonSerializer[CallUpRecordEvent.HungUp.type],
     JsonSerializer[CallUpRecordEvent.Updated],
-    JsonSerializer[SmsRecordEvent.Created]
-//    JsonSerializer[CallUpRecordState]
+    JsonSerializer[SmsRecordEvent.Created],
+    //聚合根
+    JsonSerializer[CallUpRecord],
+    JsonSerializer[SmsRecord]
   )
 }

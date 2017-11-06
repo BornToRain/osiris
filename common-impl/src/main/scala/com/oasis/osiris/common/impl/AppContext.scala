@@ -33,22 +33,25 @@ with AhcWSComponents
   import com.lightbend.lagom.scaladsl.server.LagomServer
   import com.oasis.osiris.common.api.CommonService
   import com.oasis.osiris.common.impl.client.{MoorClient, SmsClient}
+  import com.oasis.osiris.tool.RedisTool
   import com.softwaremill.macwire._
 
-  //注入阿里云短信客户端
+  //Redis客户端
+  lazy val redisClient           : redis.RedisClient      = wire[RedisTool].client
+  //阿里云短信客户端
   lazy val smsClient             : SmsClient              = wire[SmsClient]
-  //注入容联七陌客户端
+  //容联七陌客户端
   lazy val moorClient            : MoorClient             = wire[MoorClient]
   //绑定服务
   lazy val lagomServer           : LagomServer            = serverFor[CommonService](wire[CommonServiceImpl])
-  //注册序列化
+  //序列化
   lazy val jsonSerializerRegistry: JsonSerializerRegistry = SerializerRegistry
-  //注入仓库
+  //仓库
   lazy val callUpRecordRepository: CallUpRecordRepository = wire[CallUpRecordRepository]
-  //注册持久化
+  //持久化
   persistentEntityRegistry.register(wire[CallUpRecordEntity])
   persistentEntityRegistry.register(wire[SmsRecordEntity])
-  //注册事件处理
+  //事件处理
   readSide.register(wire[CallUpRecordEventProcessor])
   readSide.register(wire[SmsRecordEventProcessor])
 }

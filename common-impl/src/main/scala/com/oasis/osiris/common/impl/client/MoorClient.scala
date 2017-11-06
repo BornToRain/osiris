@@ -5,6 +5,7 @@ import com.oasis.osiris.tool.functional.Lift.ops._
 import play.api.http.HeaderNames
 import play.api.libs.json.{Format, Json, Writes}
 import play.api.libs.ws._
+
 import scala.concurrent.ExecutionContext
 
 object MoorRequest
@@ -64,11 +65,11 @@ class MoorClient(ws: WSClient)(implicit ec: ExecutionContext)
 object MoorClient
 {
   import com.typesafe.config.ConfigFactory
-  private[this]        val config  = ConfigFactory.load
+  private[this]   val config  = ConfigFactory.load
   //容联七陌账号
-  private[MoorClient$] val account = config.getString("7moor.account")
+  private[client] val account = config.getString("7moor.account")
   //容联七陌密钥
-  private[MoorClient$] val secret  = config.getString("7moor.secret")
+  private[client] val secret  = config.getString("7moor.secret")
   //容联七陌网关
-  private[MoorClient$] val gateway = "http://apis.7moor.com/"
+  private[client] val gateway = "http://apis.7moor.com/"
 }

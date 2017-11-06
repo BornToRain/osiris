@@ -50,7 +50,6 @@ lazy val `common-impl` = project("common-impl")
 .settings(
   name := "common-impl",
   libraryDependencies ++= Seq(
-    Library.redis,
     Library.macwire,
     Library.aliyunMns,
     lagomScaladslServer,
@@ -69,6 +68,7 @@ lazy val `wechat-api` = project("wechat-api")
 )
 //微信模块实现
 lazy val `wechat-impl` = project("wechat-impl")
+.enablePlugins(LagomScala)
 .settings(
   name := "wechat-impl",
   libraryDependencies ++= Seq(

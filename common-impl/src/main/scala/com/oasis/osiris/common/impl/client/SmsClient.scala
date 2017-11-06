@@ -23,7 +23,7 @@ class SmsClient(implicit ec: ExecutionContext)
   //发送有验证码短信
   private[this] def sendCaptcha(mobile: String)(code: String)(templateId: String) = for
   {
-    f <- send(mobile)(templateId) _.liftF
+    f <- (send(mobile)(templateId)_).liftF
     result <- templateId match
     {
       //身份验证
@@ -36,7 +36,7 @@ class SmsClient(implicit ec: ExecutionContext)
   //发送无验证码短信
   private[this] def sendSms(mobile: String)(templateId: String) = for
   {
-    f <- send(mobile)(templateId) _.liftF
+    f <- (send(mobile)(templateId)_).liftF
     result <- templateId match
     {
       //达人通知
@@ -85,27 +85,28 @@ class SmsClient(implicit ec: ExecutionContext)
 object SmsClient
 {
   import com.typesafe.config.ConfigFactory
-  private[this]       val config   = ConfigFactory.load
+
+  private[this]   val config   = ConfigFactory.load
   //阿里云key
-  private[SmsClient$] val key      = config.getString("sms.key")
+  private[client] val key      = config.getString("sms.key")
   //阿里云密钥
-  private[SmsClient$] val secret   = config.getString("sms.secret")
+  private[client] val secret   = config.getString("sms.secret")
   //阿里云短信网关
-  private[SmsClient$] val endPoint = "https://1126869279253886.mns.cn-beijing.aliyuncs.com/"
+  private[client] val endPoint = "https://1126869279253886.mns.cn-beijing.aliyuncs.com/"
   //阿里云短信主题
-  private[SmsClient$] val topic    = "sms.topic-cn-beijing"
+  private[client] val topic    = "sms.topic-cn-beijing"
   //短信签名
-  private[SmsClient$] val sign     = "泓华医疗"
+  private[client] val sign     = "泓华医疗"
 
   //阿里云短信模版
   object Template
   {
     //验证码模版
-    private[Template$] lazy val authentication = "SMS_71161028"
+    private[client] val authentication = "SMS_71161028"
     //支付模版
-    private[Template$] lazy val payment        = "SMS_96870043"
+    private[client] val payment        = "SMS_96870043"
     //达人通知模版
-    private[Template$] lazy val notice         = "SMS_103945002"
+    private[client] val notice         = "SMS_103945002"
   }
 
 }

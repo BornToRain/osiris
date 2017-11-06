@@ -1,11 +1,11 @@
 package com.oasis.osiris.common.impl
 
-import akka.actor.ActorSystem
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntityRegistry
 import com.oasis.osiris.common.api.CommonService
 import com.oasis.osiris.common.impl.client.{MoorClient, SmsClient}
 import com.oasis.osiris.tool.Api
 import com.oasis.osiris.tool.functional.Lift.ops._
+import redis.RedisClient
 
 import scala.concurrent.ExecutionContext
 
@@ -17,14 +17,13 @@ class CommonServiceImpl
   registry: PersistentEntityRegistry,
   smsClient                : SmsClient,
   moorClient               : MoorClient,
-  actorSystem              : ActorSystem,
+  redis                    : RedisClient,
   callUpRecordRepository: CallUpRecordRepository
 )(implicit ec: ExecutionContext) extends CommonService with Api
 {
   import com.lightbend.lagom.scaladsl.api.transport.NotFound
   import com.lightbend.lagom.scaladsl.persistence.PersistentEntity
   import com.lightbend.lagom.scaladsl.server.ServerServiceCall
-  import com.oasis.osiris.common.impl.client.RedisClient
   import com.oasis.osiris.tool.{IdWorker, Restful}
 
   import scala.reflect.ClassTag
@@ -67,7 +66,6 @@ class CommonServiceImpl
     _ =>
     for
     {
-      redis <- RedisClient(actorSystem).client.liftF
       //被呼号
       called <- redis.get[BindingRelation](s"$REDIS_KEY_BINDING$mobile")
       .map
@@ -97,7 +95,6 @@ class CommonServiceImpl
         //Map参数构建更新命令
         CallUpRecordCommand.Update.fromMap(param)
       }.liftF
-      redis <- RedisClient(actorSystem).client.liftF
       //电话绑定关系Id
       id <- redis.get[BindingRelation](s"$REDIS_KEY_BINDING${cmd.call}")
       .map
@@ -143,17 +140,12 @@ class CommonServiceImpl
   override def smsValidation = v2(ServerServiceCall
   {
     d =>
-    for
+    //验证码返回结果
+    redis.get[String](s"${d.smsType }=>${d.mobile }").map
     {
-      //Redis客户端
-      redis <- RedisClient(actorSystem).client.liftF
-      //验证码返回结果
-      result <- redis.get[String](s"${d.smsType }=>${d.mobile }").map
-      {
-        case Some(x) if x == d.captcha => true
-        case _                         => false
-      }
-    } yield result
+      case Some(s) if s == d.captcha => true
+      case _                         => false
+    }
   })
 
   override def smsSuccess = ???

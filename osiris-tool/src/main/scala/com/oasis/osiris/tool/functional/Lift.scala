@@ -5,10 +5,9 @@ import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * 升格成FutureMonad
-  *
-  * @tparam T
   */
-@typeclass trait Lift[T]
+@typeclass
+trait Lift[T]
 {
   def liftF(d: T): Future[T]
 }
