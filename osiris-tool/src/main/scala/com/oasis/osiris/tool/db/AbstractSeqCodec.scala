@@ -17,11 +17,13 @@
 package com.oasis.osiris.tool.db
 
 import java.nio.ByteBuffer
+
 import com.datastax.driver.core._
 import com.datastax.driver.core.CodecUtils.{readSize, readValue}
 import com.datastax.driver.core.DataType.CollectionType
 import com.datastax.driver.core.exceptions.InvalidTypeException
 import com.google.common.reflect.TypeToken
+
 import scala.collection.mutable
 import scala.collection.generic.CanBuildFrom
 
@@ -37,10 +39,10 @@ with VersionAgnostic[C]
   {
     if (value == null) return null
     val bbs: scala.Seq[ByteBuffer] = for (elt <- value) yield
-      {
-        if (elt == null) throw new NullPointerException("List elements cannot be null")
-        eltCodec.serialize(elt, protocolVersion)
-      }
+    {
+      if (elt == null) throw new NullPointerException("List elements cannot be null")
+      eltCodec.serialize(elt, protocolVersion)
+    }
     CodecUtils.pack(bbs.toArray, value.size, protocolVersion)
   }
 

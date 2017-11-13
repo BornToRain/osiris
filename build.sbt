@@ -28,13 +28,13 @@ lazy val `osiris-tool` = project("osiris-tool")
   name := "osiris-tool",
   libraryDependencies ++= Seq(
     Library.redis,
+    Library.xstream,
     Library.simulacrum,
     Library.cassandraExtras,
     lagomScaladslApi % Optional,
     lagomScaladslServer % Optional
   )
 )
-
 //公用模块接口
 lazy val `common-api` = project("common-api")
 .settings(
@@ -66,6 +66,7 @@ lazy val `wechat-api` = project("wechat-api")
     lagomScaladslApi
   )
 )
+.dependsOn(`osiris-tool`)
 //微信模块实现
 lazy val `wechat-impl` = project("wechat-impl")
 .enablePlugins(LagomScala)
@@ -73,8 +74,9 @@ lazy val `wechat-impl` = project("wechat-impl")
   name := "wechat-impl",
   libraryDependencies ++= Seq(
     Library.macwire,
+    Library.xstream,
     lagomScaladslServer,
     lagomScaladslPersistenceCassandra
   )
 )
-.dependsOn(`osiris-tool`,`wechat-api`)
+.dependsOn(`osiris-tool`, `wechat-api`)

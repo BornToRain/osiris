@@ -17,6 +17,7 @@
 package com.oasis.osiris.tool.db
 
 import com.datastax.driver.core._
+
 import scala.collection.immutable.SortedSet
 
 class SortedSetCodec[E](eltCodec: TypeCodec[E])(implicit ordering: Ordering[E])

@@ -12,12 +12,12 @@ object DateTool
   import java.time.ZoneId
   import java.time.format.DateTimeFormatter
   import java.util.Locale
-  lazy val SECONDS   = "seconds"
-  lazy val MINUTES   = "minutes"
-  lazy val HOURS     = "hours"
-  lazy val DAYS      = "days"
-  lazy val FULLDATE  = "yyyy-MM-dd HH:mm:ss"
-  lazy val TIMESTAMP = "yyyyMMddHHmmss"
+  lazy val SECONDS    = "seconds"
+  lazy val MINUTES    = "minutes"
+  lazy val HOURS      = "hours"
+  lazy val DAYS       = "days"
+  lazy val FULLDATE   = "yyyy-MM-dd HH:mm:ss"
+  lazy val TIMESTAMP  = "yyyyMMddHHmmss"
   lazy val RFC822DATE = "EEE, dd MMM yyyy HH:mm:ss z"
 
   //字符串转Instant格式日期
@@ -57,6 +57,6 @@ object DateTool
   /**
     * 日期格式化
     */
-  def format(date:Instant)(implicit pattern:String = FULLDATE) = DateTimeFormatter.ofPattern(pattern,Locale.US).withZone(ZoneId.systemDefault).format(date)
-
+  def format(date: Instant)(implicit pattern: String = FULLDATE) = DateTimeFormatter.ofPattern(pattern, Locale.US).withZone(ZoneId.systemDefault)
+  .format(date)
 }

@@ -17,11 +17,13 @@
 package com.oasis.osiris.tool.db
 
 import java.nio.ByteBuffer
+
 import com.datastax.driver.core._
 import com.datastax.driver.core.CodecUtils.{readSize, readValue}
 import com.datastax.driver.core.DataType.CollectionType
 import com.datastax.driver.core.exceptions.InvalidTypeException
 import com.google.common.reflect.TypeToken
+
 import scala.collection.mutable
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable.ArrayBuffer

@@ -14,10 +14,10 @@ import scala.concurrent.ExecutionContext
   */
 class CommonServiceImpl
 (
-  registry: PersistentEntityRegistry,
-  smsClient                : SmsClient,
-  moorClient               : MoorClient,
-  redis                    : RedisClient,
+  registry              : PersistentEntityRegistry,
+  smsClient             : SmsClient,
+  moorClient            : MoorClient,
+  redis                 : RedisClient,
   callUpRecordRepository: CallUpRecordRepository
 )(implicit ec: ExecutionContext) extends CommonService with Api
 {
@@ -40,7 +40,7 @@ class CommonServiceImpl
       cmd <- CallUpRecordCommand.Bind(id, d.thirdId, d.call, d.called, d.maxCallTime, d.noticeUri).liftF
       //发送绑定命令
       _ <- refFor[CallUpRecordEntity](id).ask(cmd)
-       //Http201响应
+      //Http201响应
     } yield Restful.created(r)(id)
   })
 
@@ -53,7 +53,7 @@ class CommonServiceImpl
       hangup <- refFor[CallUpRecordEntity](id).ask(CallUpRecordCommand.HangUp)
       _ <- hangup match
       {
-          //调容联七陌接口挂断
+        //调容联七陌接口挂断
         case Some(d) => moorClient.hangUp(d)
         case _       => throw NotFound(s"ID${id }通话记录不存在")
       }
@@ -96,11 +96,11 @@ class CommonServiceImpl
         CallUpRecordCommand.Update.fromMap(param)
       }.liftF
       //电话绑定关系Id
-      id <- redis.get[BindingRelation](s"$REDIS_KEY_BINDING${cmd.call}")
+      id <- redis.get[BindingRelation](s"$REDIS_KEY_BINDING${cmd.call }")
       .map
       {
         case Some(d) => d.callUpRecordId
-        case _ => throw NotFound(s"手机号${cmd.call}")
+        case _       => throw NotFound(s"手机号${cmd.call }")
       }
       //发送更新命令
       _ <- refFor[CallUpRecordEntity](id).ask(cmd)
@@ -122,15 +122,15 @@ class CommonServiceImpl
       messageId <- d.smsType.toDomain[SmsType] match
       {
         //达人通知没有验证码
-        case SmsType.notice  => smsClient.sendNotice(d.mobile)
+        case SmsType.notice => smsClient.sendNotice(d.mobile)
         //其他都需要4位验证码
         //支付验证码
         case SmsType.payment => smsClient.sendPayment(d.mobile)(code)
         //剩下的目前都发送身份验证验证码
-        case _               => smsClient.sendAuthentication(d.mobile)(code)
+        case _ => smsClient.sendAuthentication(d.mobile)(code)
       }
       //创建命令
-      cmd <- SmsRecordCommand.Create(id, d.mobile, d.smsType.toDomain, isSuccess = false, messageId,Some(code)).liftF
+      cmd <- SmsRecordCommand.Create(id, d.mobile, d.smsType.toDomain, isSuccess = false, messageId, Some(code)).liftF
       //发送创建命令
       _ <- refFor[SmsRecordEntity](id).ask(cmd)
       //Http201响应
@@ -140,7 +140,7 @@ class CommonServiceImpl
   override def smsValidation = v2(ServerServiceCall
   {
     d =>
-    //验证码返回结果
+      //验证码返回结果
     redis.get[String](s"${d.smsType }=>${d.mobile }").map
     {
       case Some(s) if s == d.captcha => true

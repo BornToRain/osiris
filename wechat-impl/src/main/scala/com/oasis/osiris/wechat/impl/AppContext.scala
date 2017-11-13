@@ -46,5 +46,5 @@ with AhcWSComponents
   //注册序列化
   lazy val jsonSerializerRegistry: JsonSerializerRegistry = SerializerRegistry
   //启动微信公众号
-//  wechatClient.startWechat
+  wechatClient.startWechat
 }

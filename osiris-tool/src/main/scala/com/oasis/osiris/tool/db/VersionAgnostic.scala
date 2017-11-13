@@ -17,7 +17,9 @@
 package com.oasis.osiris.tool.db
 
 import java.nio.ByteBuffer
+
 import com.datastax.driver.core.{ProtocolVersion, TypeCodec}
+
 import scala.reflect.ClassTag
 
 trait VersionAgnostic[T]

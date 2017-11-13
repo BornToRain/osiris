@@ -17,6 +17,7 @@
 package com.oasis.osiris.tool.db
 
 import java.nio.ByteBuffer
+
 import com.datastax.driver.core.{DataType, ProtocolVersion, TypeCodec}
 import com.datastax.driver.core.exceptions.InvalidTypeException
 import com.google.common.reflect.TypeToken

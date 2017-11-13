@@ -16,14 +16,16 @@
 
 package com.oasis.osiris.tool.db
 
-import java.lang.reflect.{GenericArrayType, ParameterizedType, Type => JType}
+import java.lang.reflect.{GenericArrayType, ParameterizedType, Type ⇒ JType}
 import java.net.InetAddress
 import java.nio.ByteBuffer
 import java.util.{Date, UUID}
+
 import com.datastax.driver.core.{Duration, TypeCodec}
 import com.datastax.driver.core.exceptions.CodecNotFoundException
 import com.datastax.driver.extras.codecs.jdk8.{InstantCodec, LocalDateCodec, LocalTimeCodec}
 import com.google.common.reflect.TypeToken
+
 import scala.reflect.runtime.universe._
 
 object TypeConversions

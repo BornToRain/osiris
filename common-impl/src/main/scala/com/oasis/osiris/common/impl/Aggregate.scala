@@ -21,29 +21,29 @@ case class CallUpRecord
   //呼叫
   call       : String,
   //被叫
-  called: String,
+  called     : String,
   //最大通话时长
   maxCallTime: Option[Int],
   //本次通话时长
-  callTime: Option[Int],
+  callTime   : Option[Int],
   //通话类型
   callType   : Option[CallType],
   //通话振铃时间
-  ringTime: Option[Instant],
+  ringTime   : Option[Instant],
   //接通时间
-  beginTime: Option[Instant],
+  beginTime  : Option[Instant],
   //挂断时间
   endTime    : Option[Instant],
   //通话录音文件名
   recordFile : Option[String],
   //录音文件存在服务器
-  fileServer: Option[String],
+  fileServer : Option[String],
   //通知地址
   noticeUri  : Option[String],
   //第三方唯一标识
   thirdId    : Option[String],
   //容联七陌唯一标识
-  callId: Option[String],
+  callId     : Option[String],
   //通话状态
   status     : Option[CallStatus],
   //通话事件状态

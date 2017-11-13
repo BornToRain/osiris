@@ -17,6 +17,7 @@
 package com.oasis.osiris.tool.db
 
 import com.datastax.driver.core._
+
 import scala.collection.immutable.SortedMap
 
 class SortedMapCodec[K, V](keyCodec: TypeCodec[K], valueCodec: TypeCodec[V])(implicit ordering: Ordering[K])

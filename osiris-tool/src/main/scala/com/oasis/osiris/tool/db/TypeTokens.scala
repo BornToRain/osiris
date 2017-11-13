@@ -17,6 +17,7 @@
 package com.oasis.osiris.tool.db
 
 import com.google.common.reflect.{TypeParameter, TypeToken}
+
 import scala.collection.immutable
 
 /**

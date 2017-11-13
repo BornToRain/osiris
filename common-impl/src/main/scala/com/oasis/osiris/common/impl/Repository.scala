@@ -16,8 +16,8 @@ class CallUpRecordRepository(session: CassandraSession)(implicit ec: ExecutionCo
 {
   def gets = for
   {
-    list <- session.selectAll("SELECT * FROM call_up_record")
-    data <- list.map(row =>
+    xs   <- session.selectAll("SELECT * FROM call_up_record")
+    data <- xs.map(row =>
     {
       import com.oasis.osiris.common.impl.CallEventStatus.CallEventStatus
       import com.oasis.osiris.common.impl.CallStatus.CallStatus

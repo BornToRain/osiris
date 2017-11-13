@@ -2,6 +2,7 @@ package com.oasis.osiris.common.impl
 
 import java.time.Instant
 import java.util.Date
+
 import akka.Done
 import akka.event.slf4j.SLF4JLogging
 import com.datastax.driver.core.PreparedStatement
@@ -9,6 +10,7 @@ import com.lightbend.lagom.scaladsl.persistence.{EventStreamElement, ReadSidePro
 import com.lightbend.lagom.scaladsl.persistence.cassandra.{CassandraReadSide, CassandraSession}
 import com.oasis.osiris.tool.db.{IntCodec, OptionCodec}
 import com.oasis.osiris.tool.db.Implicits._
+
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
 /**
@@ -17,7 +19,7 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 //通话记录领域事件处理
 class CallUpRecordEventProcessor
 (
-  session: CassandraSession,
+  session : CassandraSession,
   readSide: CassandraReadSide
 )(implicit ec: ExecutionContext) extends ReadSideProcessor[CallUpRecordEvent] with SLF4JLogging
 {
@@ -174,7 +176,7 @@ class SmsRecordEventProcessor
   .build
 
   private[this] def createTable = for
-    {
+  {
     //短信记录表
     _ <- session.executeCreateTable
     {

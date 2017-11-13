@@ -7,7 +7,7 @@ import redis.RedisClient
   * 持久化
   */
 //通话记录持久化
-class CallUpRecordEntity(redis:RedisClient) extends PersistentEntity
+class CallUpRecordEntity(redis: RedisClient) extends PersistentEntity
 {
   import java.time.Duration
 
@@ -42,7 +42,7 @@ class CallUpRecordEntity(redis:RedisClient) extends PersistentEntity
   {
     //创建聚合根
     case (Bound(cmd), _) =>
-    //绑定关系存入Redis 30分钟
+      //绑定关系存入Redis 30分钟
     redis.set[BindingRelation](s"$REDIS_KEY_BINDING${cmd.call }", BindingRelation(cmd.id, cmd.call, cmd.called, cmd.thirdId),
       Some(Duration.ofMinutes(30L).getSeconds))
     Some(CallUpRecord.bind(cmd))
@@ -80,7 +80,7 @@ class CallUpRecordEntity(redis:RedisClient) extends PersistentEntity
 }
 
 //短信记录持久化
-class SmsRecordEntity(redis:RedisClient) extends PersistentEntity
+class SmsRecordEntity(redis: RedisClient) extends PersistentEntity
 {
   import com.oasis.osiris.common.impl.SmsRecordCommand._
   import com.oasis.osiris.common.impl.SmsRecordEvent._

@@ -44,4 +44,5 @@ package object impl
       obj.asInstanceOf[T]
     }
   }
+
 }

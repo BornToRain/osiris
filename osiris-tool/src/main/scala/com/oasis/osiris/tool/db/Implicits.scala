@@ -17,6 +17,7 @@
 package com.oasis.osiris.tool.db
 
 import java.lang.reflect
+
 import com.datastax.driver.core._
 import com.google.common.reflect.TypeToken
 

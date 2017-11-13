@@ -1,6 +1,7 @@
 package com.oasis.osiris.tool
 
 import akka.event.slf4j.SLF4JLogging
+
 import scala.concurrent.{ExecutionContext, Future}
 
 /**

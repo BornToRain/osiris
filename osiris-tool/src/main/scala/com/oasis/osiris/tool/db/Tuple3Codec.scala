@@ -17,6 +17,7 @@
 package com.oasis.osiris.tool.db
 
 import java.nio.ByteBuffer
+
 import com.datastax.driver.core._
 import com.datastax.driver.core.TypeCodec.AbstractTupleCodec
 import com.google.common.reflect.TypeToken

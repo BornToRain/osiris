@@ -12,7 +12,6 @@ trait Api extends SLF4JLogging
 {
   import play.api.http.ContentTypes
   lazy val v2Json = "application/oasis.v2+json"
-
   //v2版本头
   def v2[Request, Response](call: ServerServiceCall[Request, Response]) = logged(ServerServiceCall.compose
   {
@@ -24,7 +23,7 @@ trait Api extends SLF4JLogging
       case _          => request.getHeader(HeaderNames.ACCEPT) match
       {
         case Some(d) if d == ContentTypes.JSON || d == v2Json => call
-        case _                                   => throw new UnsupportedMediaType(TransportErrorCode.ProtocolError,
+        case _                                                => throw new UnsupportedMediaType(TransportErrorCode.ProtocolError,
           new ExceptionMessage("ProtocolError", s"请指定Accept请求头为${ContentTypes.JSON }或${v2Json }"))
       }
     }
@@ -41,8 +40,7 @@ trait Api extends SLF4JLogging
       log.debug(s"请求内容编码 =====> ${request.protocol.charset }")
       request.headerMap.foreach
       {
-        _._2.foreach
-        { case (h, v) => log.debug(s"$h =====> $v") }
+        case (_, Seq((k, v))) => log.debug(s"$k =====> $v")
       }
     }
     call
