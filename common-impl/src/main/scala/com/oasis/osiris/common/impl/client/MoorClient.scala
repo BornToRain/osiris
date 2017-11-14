@@ -65,11 +65,12 @@ class MoorClient(ws: WSClient)(implicit ec: ExecutionContext)
 object MoorClient
 {
   import com.typesafe.config.ConfigFactory
-  private[this]   val config  = ConfigFactory.load
+
+  private[this] val config  = ConfigFactory.load
   //容联七陌账号
-  private[client] val account = config.getString("7moor.account")
+  private[impl] val account = config.getString("7moor.account")
   //容联七陌密钥
-  private[client] val secret  = config.getString("7moor.secret")
+  private[impl] val secret  = config.getString("7moor.secret")
   //容联七陌网关
-  private[client] val gateway = "http://apis.7moor.com/"
+  private[impl] val gateway = "http://apis.7moor.com/"
 }

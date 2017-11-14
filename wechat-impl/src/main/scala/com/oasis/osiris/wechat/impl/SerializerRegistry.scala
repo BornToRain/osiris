@@ -6,5 +6,16 @@ import com.lightbend.lagom.scaladsl.playjson.JsonSerializerRegistry
   */
 object SerializerRegistry extends JsonSerializerRegistry
 {
-  def serializers = Vector.empty
+  import com.lightbend.lagom.scaladsl.playjson.JsonSerializer
+  def serializers = Vector(
+    //命令
+    //二维码
+    JsonSerializer[QRCodeCommand.Create],
+    //事件
+    //二维码
+    JsonSerializer[QRCodeEvent.Created],
+    //聚合根
+    //二维码
+    JsonSerializer[QRCode]
+  )
 }

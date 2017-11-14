@@ -17,14 +17,96 @@ class WechatServiceImpl
   registry: PersistentEntityRegistry
 )(implicit ec: ExecutionContext) extends WechatService with Api
 {
+  import com.lightbend.lagom.scaladsl.api.transport.BadRequest
   import com.lightbend.lagom.scaladsl.persistence.PersistentEntity
   import com.lightbend.lagom.scaladsl.server.ServerServiceCall
   import com.oasis.osiris.tool.{IdWorker, Restful}
   import com.oasis.osiris.tool.functional.Lift.ops._
+  import com.oasis.osiris.wechat.api
   import com.oasis.osiris.wechat.api.WechatRequest
   import com.oasis.osiris.wechat.impl.tool.XMLTool
 
   import scala.reflect.ClassTag
+  import scala.util.Random
+
+  override def createTag = v2(ServerServiceCall
+  {
+    (r,d) =>
+    for
+    {
+      //主键生成
+      id   <- IdWorker.liftF
+      //请求微信创建标签
+      wxId <- wechat.createTag(d.name)
+      //创建命令
+      cmd  <- TagCommand.Create(id,wxId,d.name).liftF
+      //发送创建命令
+      _    <- refFor[TagEntity](id).ask(cmd)
+      //Http201响应
+    } yield Restful.created(r)(id)
+  })
+
+  override def createQRCode = v2(ServerServiceCall
+  {
+    (r,d) =>
+
+    import com.oasis.osiris.wechat.impl.QRCodeType.QRCodeType
+    import com.oasis.osiris.wechat.impl.client.WechatClient.CreateQRCode
+
+    for
+    {
+      //主键生成
+      id         <- IdWorker.liftF
+      actionName <- d.`type`.toDomain[QRCodeType].liftF
+      //构建请求微信二维码参数
+      request    <- d match
+      {
+        case api.QRCodeDTO.Create(_, None, Some(i), second) => CreateQRCode(actionName,("scene_id",i.toString),second).liftF
+        case api.QRCodeDTO.Create(_, Some(s), None, second) => CreateQRCode(actionName,("scene_str",s),second).liftF
+      }
+      //请求微信创建二维码
+      ticket     <- wechat.createQRCode(request)
+      //请求微信创建短链接
+      uri        <- wechat.createShortURI(ticket)
+      //创建命令
+      cmd        <- QRCodeCommand.Create(id,actionName,d.sceneStr,d.sceneId,d.expireSeconds,ticket,uri).liftF
+      //发送创建命令
+      _          <- refFor[QRCodeEntity](id).ask(cmd)
+      //Http201响应
+    } yield Restful.created(r)(id)
+  })
+
+  override def getOpenId(code: String) = v2(ServerServiceCall
+  {
+    _ =>
+    import play.api.libs.json.Json
+    for
+    {
+      json   <- wechat.oauth2(code)
+      openId <- (json \ "openid").asOpt[String].liftF
+      result <- openId match
+      {
+        case Some(d) => Json.obj("openid" -> d).liftF
+        case _       => throw BadRequest("无效的code值")
+      }
+    } yield result
+  })
+
+  override def getJsSDK(uri: String) = v2(ServerServiceCall
+  {
+    _ =>
+    import com.oasis.osiris.tool.DateTool
+    for
+    {
+      timestamp <- DateTool.datetimeStamp.liftF
+      nonceStr  <- createRandom(32).liftF
+      signature <- wechat.jsSign(timestamp)(nonceStr)(uri)
+      result    <- api.JsSDK(WechatClient.appId,timestamp,nonceStr,signature).liftF
+    } yield result
+  })
+
+  //产生指定位数随机数
+  private[this] def createRandom(i: Int) = Stream.iterate(Random.nextPrintableChar(), i)(_ => Random.nextPrintableChar()).mkString
 
   override def get(signature: String, timestamp: String, nonce: String, echostr: String) = v2(ServerServiceCall
   {
@@ -43,7 +125,7 @@ class WechatServiceImpl
     import com.oasis.osiris.wechat.api.WechatRequest
 
     val request = WechatRequest.parseXML(d)
-    val openId = request.FromUserName
+    val openId  = request.FromUserName
     val msgType = request.MsgType
 
     log.info("处理微信消息(XML)")
@@ -129,8 +211,6 @@ class WechatServiceImpl
       f      <- (newsHandle(request)_).liftF
       result <- request.EventKey match
       {
-        //无绑定图文
-        case _                               => f(false)
         //有绑定图文
         case Some(d) if d.contains("clinic") =>
         val openId = request.FromUserName
@@ -151,6 +231,8 @@ class WechatServiceImpl
           _      <- redis.set[OpenId](openId,update)
         } yield update
         f(true)
+        //无绑定图文
+        case _                               => f(false)
       }
     } yield result
   }
@@ -173,23 +255,6 @@ class WechatServiceImpl
     //公众号图文响应
     result   <- newsResponse(request)(articles).liftF
   } yield result
-
-  override def createTag = v2(ServerServiceCall
-  {
-    (r,d) =>
-    for
-    {
-      //主键生成
-      id   <- IdWorker.liftF
-      //请求微信创建标签
-      wxId <- wechat.createTag(d.name)
-      //创建命令
-      cmd  <- TagCommand.Create(id,wxId,d.name).liftF
-      //发送创建命令
-      _    <- refFor[TagEntity](id).ask(cmd)
-      //Http201响应
-    } yield Restful.created(r)(id)
-  })
 
   /**
     * 文本响应

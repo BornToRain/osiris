@@ -22,15 +22,17 @@ class WechatClient
 
   import scala.concurrent.Future
 
-  private[this]    val log                  = LoggerFactory.getLogger(classOf[WechatClient])
-  private[this]    val redisAccessToken     = "AccessToken"
-  private[this]    val redisJsApiTicket     = "JsApiTicket"
-  private[this]    val redisApiTicket       = "ApiTicket"
+  private[this]      val log              = LoggerFactory.getLogger(classOf[WechatClient])
+  private[this]      val redisAccessToken = "AccessToken"
+  private[this]      val redisJsApiTicket = "JsApiTicket"
+  private[this]      val redisApiTicket   = "ApiTicket"
+  private[this] lazy val kv               = ("access_token","#")
+
 
   /**
     * 替换AccessToken值
     */
-  private[this] def replaceAccessToken(qs: (String, String)*) = qs.contains(("access_token", "#")) match
+  private[this] def replaceAccessToken(qs: (String, String)*) = qs.contains(kv) match
   {
     case true => accessToken.map
     {
@@ -67,7 +69,9 @@ class WechatClient
     .post(Json.toJson(data))
   } yield post
 
-  //微信AccessToken
+  /**
+    * 微信AccessToken
+    */
   def accessToken: Future[String] = for
   {
     //缓存中Token
@@ -95,7 +99,10 @@ class WechatClient
       }
     }
   } yield token
-  //微信JsApiTicket
+
+  /**
+    * 微信JsApiTicket
+    */
   def jsApiTicket: Future[String] = for
   {
     //缓存中JsApiTicket
@@ -108,7 +115,7 @@ class WechatClient
       //缓存失效 网络请求获取
       case _       => for
       {
-        response <- get("cgi-bin/ticket/getticket")("access_token" -> "#", "type" -> "jsapi")
+        response <- get("cgi-bin/ticket/getticket")(kv, "type" -> "jsapi")
         web      <-
         {
           val body = response.json
@@ -120,7 +127,10 @@ class WechatClient
       } yield web
     }
   } yield jsApiTicket
-  //微信ApiTicket
+
+  /**
+    * 微信ApiTicket
+    */
   def apiTicket: Future[String] = for
   {
     //缓存中ApiTicket
@@ -133,7 +143,7 @@ class WechatClient
       //缓存失效 网络请求获取
       case _       => for
       {
-        response <- get("cgi-bin/ticket/getticket")("access_token" -> "#", "type" -> "wx_card")
+        response <- get("cgi-bin/ticket/getticket")(kv, "type" -> "wx_card")
         web      <-
         {
           val body = response.json
@@ -147,13 +157,13 @@ class WechatClient
   } yield apiTicket
 
   import com.oasis.osiris.tool.EncryptionTool
-  import com.oasis.osiris.wechat.impl.client.WechatClient.{AddTagFans, NewsItem}
+  import com.oasis.osiris.wechat.impl.client.WechatClient.{AddTagFans, CreateQRCode, NewsItem}
 
   import scala.concurrent.duration._
 
   /**
     * 运行微信公众号客户端
-    * 5秒延迟后开始运行
+    * 1秒延迟后开始运行
     * 每一个小时刷新一次
     */
   def startWechat = actorSystem.scheduler.schedule(1.second, 1.hour)
@@ -169,9 +179,11 @@ class WechatClient
   /**
     * 获取Oauth2
     */
-  def oauth2(code: String) = get("sns/oauth2/access_token")(s"appid" -> WechatClient.appId, "secret" -> WechatClient.secret, "code" -> code,
-    "grant_type" -> "authorization_code")
-  .map(_.json)
+  def oauth2(code: String) = for
+  {
+    response <- get("sns/oauth2/access_token")(s"appid" -> WechatClient.appId, "secret" -> WechatClient.secret, "code" -> code,
+      "grant_type" -> "authorization_code")
+  } yield response.json
 
   /**
     * js-sdk签名
@@ -200,10 +212,9 @@ class WechatClient
     */
   def getNewsMaterials(mediaId: String) = for
   {
-    request  <- s"""{"media_id":$mediaId}""".liftF
-    response <- post("cgi-bin/material/get_material")(request)("access_token" -> "#")
-    json     <- Json.toJson(response.body).liftF
-    xs       <- (json \\ "news_item").map(_.as[NewsItem]).liftF
+    request  <- Json.obj("media_id" -> mediaId).liftF
+    response <- post("cgi-bin/material/get_material")(request)(kv)
+    xs       <- (response.json \\ "news_item").map(_.as[NewsItem]).liftF
   } yield xs
 
   /**
@@ -211,9 +222,9 @@ class WechatClient
     */
   def createTag(name:String) = for
   {
-    request  <- s"""{"name":$name}""".liftF
-    response <- post("cgi-bin/tags/create?")(request)("access_token" -> "#")
-    wxId     <- (Json.toJson(response.body) \ "tag" \ "id").as[String].liftF
+    request  <- Json.obj("name" -> name).liftF
+    response <- post("cgi-bin/tags/create?")(request)(kv)
+    wxId     <- (response.json \ "tag" \ "id").as[String].liftF
   } yield wxId
 
   /**
@@ -221,30 +232,44 @@ class WechatClient
     */
   def addTagFans(request:AddTagFans) = for
   {
-    response <- post("cgi-bin/tags/members/batchtagging")(request)("access_token" -> "#")
-    json     <- Json.toJson(response.body).liftF
-  } yield json
+    response <- post("cgi-bin/tags/members/batchtagging")(request)(kv)
+  } yield response.json
 
+  /**
+    * 创建二维码
+    */
+  def createQRCode(request:CreateQRCode) = for
+  {
+    response <- post("cgi-bin/qrcode/create")(request)(kv)
+    ticket   <- (response.json \ "ticket").as[String].liftF
+  } yield ticket
+
+  /**
+    * 创建短链接
+    */
+  def createShortURI(ticket:String) = for
+  {
+    request  <- Json.obj("action" -> "long2short", "long_url" -> ticket).liftF
+    response <- post("cgi-bin/shorturl")(request)(kv)
+    shortUri <- (response.json \ "short_url").as[String].liftF
+  } yield shortUri
 }
 
 object WechatClient
 {
+  import com.oasis.osiris.wechat.impl.QRCodeType.QRCodeType
   import com.typesafe.config.ConfigFactory
-  import play.api.libs.json.{Json, Reads, Writes}
-  private[this]        val config            = ConfigFactory.load
-  private[client]      val appId             = config.getString("wechat.app-id")
-  private[client]      val secret            = config.getString("wechat.secret")
-  //  private[client] val mchId             = config.getString("mch-id")
-//  private[client] val key               = config.getString("key")
-  private[client]      val token             = config.getString("wechat.token")
-  private[client]      val enableJsApiTicket = config.getBoolean("wechat.enable-js-api-ticket")
-  private[client]      val enableApiTicket   = config.getBoolean("wechat.enable-api-ticket")
-  private[client] lazy val certPath          = config.getString("wechat.cert-path")
-  private[client] lazy val certPwd           = config.getString("wechat.cert-password")
-  private[client]      val gateway           = "https://api.weixin.qq.com/"
+  import play.api.libs.json.{Json, JsValue, Reads, Writes}
+  private[this]      val config            = ConfigFactory.load
+  private[impl]      val appId             = config.getString("wechat.app-id")
+  private[impl]      val secret            = config.getString("wechat.secret")
+  private[impl]      val token             = config.getString("wechat.token")
+  private[impl]      val enableJsApiTicket = config.getBoolean("wechat.enable-js-api-ticket")
+  private[impl]      val enableApiTicket   = config.getBoolean("wechat.enable-api-ticket")
+  private[impl]      val gateway           = "https://api.weixin.qq.com/"
 
   //微信添加粉丝请求
-  case class AddTagFans(openIds:Vector[String],wxId:String)
+  case class AddTagFans(openIds: Vector[String],wxId: String)
 
   object AddTagFans
   {
@@ -254,17 +279,40 @@ object WechatClient
   /**
     * 图文消息素材
     */
-  case class NewsItem(title:String,author:String,digest:String,
-    content:String,contentSourceUri:String,thumbMediaId:String,
-    thumbUri:String,uri:String)
+  case class NewsItem
+  (
+    title           : String,
+    author          : String,
+    digest          : String,
+    content         : String,
+    contentSourceUri: String,
+    thumbMediaId    : String,
+    thumbUri        : String,
+    uri             : String
+  )
 
   object NewsItem
   {
     implicit val reads:Reads[NewsItem] = Reads[NewsItem]
     {
-      import play.api.libs.json.JsValue
       _.validate[JsValue].map(d => apply((d \ "title").as[String],(d \ "author").as[String],(d \ "digest").as[String],(d \ "content").as[String],
         (d \ "content_source_url").as[String],(d \ "thumb_media_id").as[String],(d \ "thumb_url").as[String],(d \ "url").as[String]))
+    }
+  }
+
+  /**
+    * 微信创建二维码请求
+    */
+  case class CreateQRCode(actionName: QRCodeType,qrcodeInfo: (String,String),expireSeconds: Option[Int])
+
+  object CreateQRCode
+  {
+    implicit val writes: Writes[CreateQRCode] = Writes[CreateQRCode]
+    {
+      d =>
+      val info = s"""{"scene":{"${d.qrcodeInfo._1 }":"${d.qrcodeInfo._2 }"}}"""
+      d.expireSeconds.map(i => Json.obj("action_name" -> d.actionName, "action_info" -> info, "expire_seconds" -> i))
+      .getOrElse(Json.obj("action_name" -> d.actionName, "action_info" -> info))
     }
   }
 

@@ -1,4 +1,7 @@
 package com.oasis.osiris.wechat.api
+
+import play.api.libs.json.{Format, Json, Reads, Writes}
+
 /**
   * 接口层DTO对象
   */
@@ -9,15 +12,50 @@ object TagDTO
 
   object Create
   {
-    import play.api.libs.json.{Format, Json}
     implicit val format:Format[Create] = Json.format
   }
 }
 
+object QRCodeDTO
+{
+  import com.oasis.osiris.tool.JSONTool.enumFormat
+  import com.oasis.osiris.wechat.api.QRCodeDTO.QRCodeType.QRCodeType
+
+  //创建DTO
+  case class Create(`type`: QRCodeType,sceneStr: Option[String],sceneId: Option[Int],expireSeconds: Option[Int])
+
+  object Create
+  {
+    implicit val format:Format[Create] = Json.format
+  }
+
+  //二维码类型
+  object QRCodeType extends Enumeration
+  {
+    type QRCodeType = Value
+    //临时的整型参数、临时的字符串参数、永久的整型参数、永久的字符串参数
+    val QR_SCENE,QR_STR_SCENE,QR_LIMIT_SCENE,QR_LIMIT_STR_SCENE = Value
+
+    implicit val format:Format[QRCodeType] = enumFormat(QRCodeType)
+  }
+}
+
+case class JsSDK(appId: String,timestamp: String,nonceStr: String,signature: String)
+
+object JsSDK
+{
+  implicit val reads : Reads[JsSDK]  = Json.reads
+  implicit val writes: Writes[JsSDK] = Writes[JsSDK](
+    d => Json.obj("appId" -> d.appId, "timeStamp" -> d.timestamp, "nonceStr" -> d.nonceStr, "signature" -> d.signature))
+}
+
+/**
+  * 微信公众号请求参数
+  */
 case class WechatRequest
 (
   //公众号
-  ToUserName: String,
+  ToUserName    : String,
   //用户OpenId
   FromUserName  : String,
   //消息创建时间(整型)
@@ -25,7 +63,7 @@ case class WechatRequest
   //消息类型
   MsgType       : String,
   //消息id,64位整形
-  MsgId: String,
+  MsgId         : String,
   /** *****文本消息 *******/
   //文本消息内容
   Content       : Option[String],
@@ -38,7 +76,7 @@ case class WechatRequest
   //语音格式，如amr，speex等
   Format        : Option[String],
   //语音识别结果，UTF8编码
-  Recognition: Option[String],
+  Recognition   : Option[String],
   /** *****(小)视频消息 *******/
   //视频消息缩略图的媒体id，可以调用多媒体文件下载接口拉取数据。
   ThumbMediaId  : Option[String],
@@ -67,9 +105,9 @@ case class WechatRequest
   //纬度
   Latitude      : Option[String],
   //经度
-  Longitude: Option[String],
+  Longitude     : Option[String],
   //精度
-  Precision: Option[String]
+  Precision     : Option[String]
 )
 
 object WechatRequest

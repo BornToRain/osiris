@@ -25,8 +25,8 @@ class CallUpRecordEventProcessor
 {
   import com.oasis.osiris.common.impl.CallUpRecordEvent._
 
-  private[this] val bindCallUpRecordPro   = Promise[PreparedStatement]
-  private[this] val updateCallUpRecordPro = Promise[PreparedStatement]
+  private[this] val bindPro   = Promise[PreparedStatement]
+  private[this] val updatePro = Promise[PreparedStatement]
 
   //当前集群
   private[this] def getCluster = session.underlying.map(_.getCluster)
@@ -45,7 +45,7 @@ class CallUpRecordEventProcessor
 
   //数据库表创建
   private[this] def createTable = for
-    {
+  {
     //通话记录表
     _ <- session.executeCreateTable
     {
@@ -80,11 +80,11 @@ class CallUpRecordEventProcessor
     //设置集群编码器
     getCluster.map(_.getConfiguration.getCodecRegistry.register(codecs: _*))
     //绑定通话记录SQL
-    bindCallUpRecordPro.completeWith(session
+    bindPro.completeWith(session
     .prepare(
       """INSERT INTO call_up_record(id,call,called,max_call_time,call_type,notice_uri,third_id,create_time,update_time) VALUES(?,?,?,?,?,?,?,?,?)"""))
     //更新通话记录SQL
-    updateCallUpRecordPro.completeWith(session.prepare(
+    updatePro.completeWith(session.prepare(
       """
         |UPDATE call_up_record
         |SET
@@ -110,9 +110,9 @@ class CallUpRecordEventProcessor
     log.info("持久化电话绑定关系到读边")
     val cmd = event.event.cmd
     for
-      {
+    {
       //通话记录插入
-      data <- bindCallUpRecordPro.future.map
+      data <- bindPro.future.map
       {
         ps =>
         val d = ps.bind
@@ -134,9 +134,9 @@ class CallUpRecordEventProcessor
     log.info("更新通话记录")
     val cmd = event.event.cmd
     for
-      {
+    {
       //通话记录更新
-      data <- updateCallUpRecordPro.future.map
+      data <- updatePro.future.map
       {
         ps =>
         val d = ps.bind
@@ -165,14 +165,14 @@ class SmsRecordEventProcessor
 {
   import com.oasis.osiris.common.impl.SmsRecordEvent._
 
-  private[this] val insertSmsRecordPro = Promise[PreparedStatement]
+  private[this] val insertPro = Promise[PreparedStatement]
 
   override def aggregateTags = SmsRecordEvent.tag.allTags
 
   override def buildHandler = readSide.builder[SmsRecordEvent]("smsRecordEventOffSet")
   .setGlobalPrepare(() => createTable)
   .setPrepare(_ => prepare)
-  .setEventHandler[Created](create)
+  .setEventHandler[Created](created)
   .build
 
   private[this] def createTable = for
@@ -198,20 +198,20 @@ class SmsRecordEventProcessor
   private[this] def prepare =
   {
     //短信记录SQL
-    insertSmsRecordPro.completeWith(session.prepare(
+    insertPro.completeWith(session.prepare(
       """INSERT INTO sms_record(id,message_id,mobile,sms_type,is_success,
         |create_time,update_time) VALUES(?,?,?,?,?,?,?)""".stripMargin))
     Future(Done)
   }
 
   //创建短信记录
-  private[this] def create(event: EventStreamElement[Created]) =
+  private[this] def created(event: EventStreamElement[Created]) =
   {
     log.info("持久化短信记录到读边")
     val cmd = event.event.cmd
     for
     {
-      data <- insertSmsRecordPro.future.map
+      data <- insertPro.future.map
       {
         ps =>
         val d = ps.bind

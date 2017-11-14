@@ -86,27 +86,27 @@ object SmsClient
 {
   import com.typesafe.config.ConfigFactory
 
-  private[this]   val config   = ConfigFactory.load
+  private[this] val config   = ConfigFactory.load
   //阿里云key
-  private[client] val key      = config.getString("sms.key")
+  private[impl] val key      = config.getString("sms.key")
   //阿里云密钥
-  private[client] val secret   = config.getString("sms.secret")
+  private[impl] val secret   = config.getString("sms.secret")
   //阿里云短信网关
-  private[client] val endPoint = "https://1126869279253886.mns.cn-beijing.aliyuncs.com/"
+  private[impl] val endPoint = "https://1126869279253886.mns.cn-beijing.aliyuncs.com/"
   //阿里云短信主题
-  private[client] val topic    = "sms.topic-cn-beijing"
+  private[impl] val topic    = "sms.topic-cn-beijing"
   //短信签名
-  private[client] val sign     = "泓华医疗"
+  private[impl] val sign     = "泓华医疗"
 
   //阿里云短信模版
   object Template
   {
     //验证码模版
-    private[client] val authentication = "SMS_71161028"
+    private[impl] val authentication = "SMS_71161028"
     //支付模版
-    private[client] val payment        = "SMS_96870043"
+    private[impl] val payment        = "SMS_96870043"
     //达人通知模版
-    private[client] val notice         = "SMS_103945002"
+    private[impl] val notice         = "SMS_103945002"
   }
 
 }

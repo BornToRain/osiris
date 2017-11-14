@@ -8,7 +8,7 @@ package object impl
   /**
     * 领域模型与接口对象转换器
     */
-  implicit class DomainModelConverter[K, V](data: AnyRef)
+  implicit class DomainModelConverter(data: AnyRef)
   {
     //转接口对象
     def toApi[T]: T =
