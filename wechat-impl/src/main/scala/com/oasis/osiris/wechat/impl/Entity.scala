@@ -1,13 +1,12 @@
 package com.oasis.osiris.wechat.impl
+import akka.Done
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity
-
 /**
   * 持久化
   */
 //标签持久化
 class TagEntity extends PersistentEntity
 {
-  import akka.Done
   import com.oasis.osiris.wechat.impl.TagCommand.{AddFans, Create}
   import com.oasis.osiris.wechat.impl.TagEvent.{AddedFans, Created}
 
@@ -57,6 +56,7 @@ class QRCodeEntity extends PersistentEntity
 {
   import com.oasis.osiris.wechat.impl.QRCodeCommand.Create
   import com.oasis.osiris.wechat.impl.QRCodeEvent.Created
+
   override type Command = QRCodeCommand[_]
   override type Event = QRCodeEvent
   override type State = Option[QRCode]
@@ -72,14 +72,50 @@ class QRCodeEntity extends PersistentEntity
   //不存在状态下操作
   def nonexistence = Actions()
   //处理创建命令
-  .onCommand[Create,String]
+  .onCommand[Create, String]
   {
     //持久化创建事件回复聚合根Id
-    case ((cmd:Create),ctx, _) => ctx.thenPersist(Created(cmd))(e => ctx.reply(e.cmd.id))
+    case ((cmd: Create), ctx, _) => ctx.thenPersist(Created(cmd))(e => ctx.reply(e.cmd.id))
   }
   .onEvent
   {
     //创建聚合根
-    case (Created(cmd), _) => Some(QRCode(cmd.id,cmd.`type`,cmd.sceneStr,cmd.sceneId,cmd.expireSeconds,cmd.ticket,cmd.uri,cmd.createTime,cmd.updateTime))
+    case (Created(cmd), _) => Some(
+      QRCode(cmd.id, cmd.`type`, cmd.sceneStr, cmd.sceneId, cmd.expireSeconds, cmd.ticket, cmd.uri, cmd.createTime, cmd.updateTime))
   }
 }
+
+//菜单持久化
+class MenuEntity extends PersistentEntity
+{
+  import com.oasis.osiris.wechat.impl.MenuCommand.Create
+  import com.oasis.osiris.wechat.impl.MenuEvent.Created
+
+  override type Command = MenuCommand[_]
+  override type Event = MenuEvent
+  override type State = Option[Menu]
+
+  override def initialState = None
+
+  override def behavior =
+  {
+    case None => nonexistence
+    case _    => throw new UnsupportedOperationException("不支持的操作")
+  }
+
+  //不存在状态下操作
+  def nonexistence = Actions()
+  //处理创建命令
+  .onCommand[Create, String]
+  {
+    //持久化创建事件回复聚合根Id
+    case ((cmd: Create), ctx, _) => ctx.thenPersist(Created(cmd))(e => ctx.reply(e.cmd.id))
+  }
+  .onEvent
+  {
+    //创建聚合根
+    case (Created(cmd), _) => Some(
+      Menu(cmd.id, cmd.name, cmd.`type`, cmd.key, cmd.uri, cmd.parentId, cmd.sort, cmd.isShow, cmd.createTime, cmd.updateTime))
+  }
+}
+

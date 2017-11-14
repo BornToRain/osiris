@@ -12,9 +12,10 @@ import scala.concurrent.ExecutionContext
   */
 class WechatServiceImpl
 (
-  redis   : RedisClient,
-  wechat  : WechatClient,
-  registry: PersistentEntityRegistry
+  redis         : RedisClient,
+  wechat        : WechatClient,
+  registry      : PersistentEntityRegistry,
+  menuRepository: MenuRepository
 )(implicit ec: ExecutionContext) extends WechatService with Api
 {
   import com.lightbend.lagom.scaladsl.api.transport.BadRequest
@@ -107,6 +108,36 @@ class WechatServiceImpl
 
   //产生指定位数随机数
   private[this] def createRandom(i: Int) = Stream.iterate(Random.nextPrintableChar(), i)(_ => Random.nextPrintableChar()).mkString
+
+  override def resetMenu = v2(ServerServiceCall
+  {
+    _ =>
+    for
+    {
+      //菜单数据
+      request <- menuRepository.getReset
+      //请求微信重置菜单
+      result <- wechat.resetMenu(request)
+    } yield result
+ })
+
+  override def createMenu = v2(ServerServiceCall
+  {
+    (r,d) =>
+    import com.oasis.osiris.wechat.impl.MenuType.MenuType
+
+    for
+    {
+      //主键生成
+      id <- IdWorker.liftF
+      t <- d.`type`.toDomain[MenuType].liftF
+      //创建命令
+      cmd <- MenuCommand.Create(id,t,d.name,d.key,d.uri,d.parentId,d.sort,d.isShow).liftF
+      //发送创建命令
+      _ <- refFor[MenuEntity](id).ask(cmd)
+
+    } yield Restful.created(r)(id)
+  })
 
   override def get(signature: String, timestamp: String, nonce: String, echostr: String) = v2(ServerServiceCall
   {
@@ -282,6 +313,5 @@ class WechatServiceImpl
     * 主键获取聚合根
     */
   private[this] def refFor[T <: PersistentEntity : ClassTag](id: String) = registry.refFor[T](id)
-
 }
 

@@ -3,6 +3,7 @@ package com.oasis.osiris.wechat.impl
 import java.time.Instant
 
 import com.oasis.osiris.tool.JSONTool._
+import com.oasis.osiris.wechat.impl.MenuType.MenuType
 import com.oasis.osiris.wechat.impl.QRCodeType.QRCodeType
 import play.api.libs.json.{Format, Json}
 
@@ -63,10 +64,45 @@ object QRCode
 //二维码类型
 object QRCodeType extends Enumeration
 {
-  import play.api.libs.json.Format
   type QRCodeType = Value
   //临时的整型参数、临时的字符串参数、永久的整型参数、永久的字符串参数
   val QR_SCENE,QR_STR_SCENE,QR_LIMIT_SCENE,QR_LIMIT_STR_SCENE = Value
 
   implicit val format:Format[QRCodeType] = enumFormat(QRCodeType)
+}
+
+//菜单聚合根
+case class Menu
+(
+  id        : String,
+  //菜单名称
+  name      : String,
+  //菜单类型
+  `type`    : MenuType,
+  //菜单键值 Key类型必传
+  key       : Option[String],
+  //菜单uri View类型必传
+  uri       : Option[String],
+  //父菜单Id
+  parentId  : Option[String],
+  //排序
+  sort      : Int,
+  //是否展示
+  isShow    : Boolean,
+  createTime: Instant = Instant.now,
+  updateTime: Instant = Instant.now
+)
+
+object Menu
+{
+  implicit val format:Format[Menu] = Json.format
+}
+
+//菜单类型
+object MenuType extends Enumeration
+{
+  type MenuType = Value
+  val CLICK,VIEW = Value
+
+  implicit val format:Format[MenuType] = enumFormat(MenuType)
 }

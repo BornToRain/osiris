@@ -17,6 +17,8 @@ trait WechatService extends Service
   def createQRCode: ServiceCall[QRCodeDTO.Create, Done]
   def getOpenId(code: String): ServiceCall[NotUsed,JsValue]
   def getJsSDK(uri: String): ServiceCall[NotUsed,JsSDK]
+  def resetMenu: ServiceCall[NotUsed,JsValue]
+  def createMenu: ServiceCall[MenuDTO.Create,Done]
   def get(signature: String, timestamp: String, nonce: String, echostr: String): ServiceCall[NotUsed, String]
   def post: ServiceCall[Elem, String]
 
@@ -34,6 +36,10 @@ trait WechatService extends Service
     restCall(Method.GET, "/wechat/oauth2/openId?code", getOpenId _),
     //获取Js-SDK
     restCall(Method.GET, "/wechat/js-sdk?uri", getJsSDK _),
+    //重置微信菜单
+    restCall(Method.POST, "/wechat/menus/reset", resetMenu),
+    //创建微信菜单
+    restCall(Method.POST, "/wechat/menus/", createMenu),
     //确认消息来自微信服务器
     restCall(Method.GET, "/wechat?signature&timestamp&nonce&echostr", get _),
     //处理微信服务器发来的消息(XML格式)

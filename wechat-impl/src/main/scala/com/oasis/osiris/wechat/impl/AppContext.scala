@@ -45,10 +45,13 @@ with AhcWSComponents
   lazy val lagomServer           : LagomServer            = serverFor[WechatService](wire[WechatServiceImpl])
   //注册序列化
   lazy val jsonSerializerRegistry: JsonSerializerRegistry = SerializerRegistry
+  lazy val menuRepository        : MenuRepository         = wire[MenuRepository]
   //持久化
   persistentEntityRegistry.register(wire[QRCodeEntity])
+  persistentEntityRegistry.register(wire[MenuEntity])
   //事件处理
   readSide.register(wire[QRCodeEventProcessor])
+  readSide.register(wire[MenuEventProcessor])
   //启动微信公众号
   wechatClient.startWechat
 }

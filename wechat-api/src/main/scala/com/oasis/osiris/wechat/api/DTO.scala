@@ -1,32 +1,34 @@
 package com.oasis.osiris.wechat.api
 
-import play.api.libs.json.{Format, Json, Reads, Writes}
+import com.oasis.osiris.tool.JSONTool.enumFormat
+import play.api.libs.json.{Format, Json, Writes}
 
 /**
   * 接口层DTO对象
   */
 object TagDTO
 {
+
   //创建DTO
-  case class Create(name:String)
+  case class Create(name: String)
 
   object Create
   {
-    implicit val format:Format[Create] = Json.format
+    implicit val format: Format[Create] = Json.format
   }
+
 }
 
 object QRCodeDTO
 {
-  import com.oasis.osiris.tool.JSONTool.enumFormat
   import com.oasis.osiris.wechat.api.QRCodeDTO.QRCodeType.QRCodeType
 
   //创建DTO
-  case class Create(`type`: QRCodeType,sceneStr: Option[String],sceneId: Option[Int],expireSeconds: Option[Int])
+  case class Create(`type`: QRCodeType, sceneStr: Option[String], sceneId: Option[Int], expireSeconds: Option[Int])
 
   object Create
   {
-    implicit val format:Format[Create] = Json.format
+    implicit val format: Format[Create] = Json.format
   }
 
   //二维码类型
@@ -34,18 +36,40 @@ object QRCodeDTO
   {
     type QRCodeType = Value
     //临时的整型参数、临时的字符串参数、永久的整型参数、永久的字符串参数
-    val QR_SCENE,QR_STR_SCENE,QR_LIMIT_SCENE,QR_LIMIT_STR_SCENE = Value
-
-    implicit val format:Format[QRCodeType] = enumFormat(QRCodeType)
+    val QR_SCENE, QR_STR_SCENE, QR_LIMIT_SCENE, QR_LIMIT_STR_SCENE = Value
+    implicit val format: Format[QRCodeType] = enumFormat(QRCodeType)
   }
+
 }
 
-case class JsSDK(appId: String,timestamp: String,nonceStr: String,signature: String)
+object MenuDTO
+{
+  import com.oasis.osiris.wechat.api.MenuDTO.MenuType.MenuType
+
+  //创建DTO
+  case class Create(`type`: MenuType, name: String, key: Option[String], uri: Option[String], parentId: Option[String], sort: Int, isShow: Boolean)
+
+  object Create
+  {
+    implicit val format: Format[Create] = Json.format
+  }
+
+  //菜单类型
+  object MenuType extends Enumeration
+  {
+    type MenuType = Value
+    val CLICK, VIEW = Value
+    implicit val format: Format[MenuType] = enumFormat(MenuType)
+  }
+
+}
+
+case class JsSDK(appId: String, timestamp: String, nonceStr: String, signature: String)
 
 object JsSDK
 {
-  implicit val reads : Reads[JsSDK]  = Json.reads
-  implicit val writes: Writes[JsSDK] = Writes[JsSDK](
+  implicit val reads  = Json.reads[JsSDK]
+  implicit val writes = Writes[JsSDK](
     d => Json.obj("appId" -> d.appId, "timeStamp" -> d.timestamp, "nonceStr" -> d.nonceStr, "signature" -> d.signature))
 }
 

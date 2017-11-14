@@ -25,6 +25,8 @@ package object impl
           case QRCodeType.QR_STR_SCENE       => api.QRCodeDTO.QRCodeType.QR_STR_SCENE
           case QRCodeType.QR_LIMIT_SCENE     => api.QRCodeDTO.QRCodeType.QR_LIMIT_SCENE
           case QRCodeType.QR_LIMIT_STR_SCENE => api.QRCodeDTO.QRCodeType.QR_LIMIT_STR_SCENE
+          case MenuType.CLICK                => api.MenuDTO.MenuType.CLICK
+          case MenuType.VIEW                 => api.MenuDTO.MenuType.VIEW
         }
       }
       obj.asInstanceOf[T]
@@ -43,6 +45,8 @@ package object impl
           case api.QRCodeDTO.QRCodeType.QR_STR_SCENE       => QRCodeType.QR_STR_SCENE
           case api.QRCodeDTO.QRCodeType.QR_LIMIT_SCENE     => QRCodeType.QR_LIMIT_SCENE
           case api.QRCodeDTO.QRCodeType.QR_LIMIT_STR_SCENE => QRCodeType.QR_LIMIT_STR_SCENE
+          case api.MenuDTO.MenuType.CLICK                  => MenuType.CLICK
+          case api.MenuDTO.MenuType.VIEW                   => MenuType.VIEW
         }
       }
       obj.asInstanceOf[T]
