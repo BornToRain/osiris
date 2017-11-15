@@ -19,8 +19,8 @@ def project(id: String) = Project(id, base = file(id))
   addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
 )
 
-//Cassandra每次重启时候清空数据
-lagomCassandraCleanOnStart in ThisBuild := true
+//Cassandra每次重启时候不清空数据
+lagomCassandraCleanOnStart in ThisBuild := false
 
 //微服务工具包、配置模块
 lazy val `osiris-tool` = project("osiris-tool")

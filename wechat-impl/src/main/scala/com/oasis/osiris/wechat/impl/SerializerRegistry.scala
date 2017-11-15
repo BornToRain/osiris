@@ -11,11 +11,17 @@ object SerializerRegistry extends JsonSerializerRegistry
     //命令
     //二维码
     JsonSerializer[QRCodeCommand.Create],
+    //菜单
+    JsonSerializer[MenuCommand.Create],
     //事件
     //二维码
     JsonSerializer[QRCodeEvent.Created],
+    //菜单
+    JsonSerializer[MenuEvent.Created],
     //聚合根
     //二维码
-    JsonSerializer[QRCode]
+    JsonSerializer[QRCode],
+    //菜单
+    JsonSerializer[Menu]
   )
 }

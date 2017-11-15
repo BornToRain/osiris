@@ -17,7 +17,7 @@ sealed trait CallUpRecordCommand[Reply] extends ReplyType[Reply]
 
 object CallUpRecordCommand
 {
-  import com.oasis.osiris.common.impl.client.MoorRequest
+  import com.oasis.osiris.common.impl.client.MoorClient
   import com.oasis.osiris.common.impl.CallType.CallType
 
   //绑定命令
@@ -75,7 +75,7 @@ object CallUpRecordCommand
   }
 
   //挂断命令
-  case object HangUp extends CallUpRecordCommand[Option[MoorRequest.HangUp]]
+  case object HangUp extends CallUpRecordCommand[Option[MoorClient.HangUp]]
   {
     implicit val format: Format[HangUp.type] = singletonFormat(HangUp)
   }
@@ -90,7 +90,8 @@ object SmsRecordCommand
   import com.oasis.osiris.common.impl.SmsType.SmsType
 
   //创建
-  case class Create(
+  case class Create
+  (
     id        : String,
     mobile    : String,
     smsType   : SmsType,
@@ -98,7 +99,8 @@ object SmsRecordCommand
     messageId : String,
     code      : Option[String],
     createTime: Instant = Instant.now,
-    updateTime: Instant = Instant.now) extends SmsRecordCommand[String]
+    updateTime: Instant = Instant.now
+  ) extends SmsRecordCommand[String]
 
   object Create
   {

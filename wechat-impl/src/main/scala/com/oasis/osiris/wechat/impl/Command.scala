@@ -1,4 +1,5 @@
 package com.oasis.osiris.wechat.impl
+
 import java.time.Instant
 
 import akka.Done
@@ -70,14 +71,14 @@ object MenuCommand
   //创建命令
   case class Create
   (
-    id: String,
-    `type`: MenuType,
-    name: String,
-    key: Option[String],
-    uri: Option[String],
-    parentId: Option[String],
-    sort: Int,
-    isShow: Boolean,
+    id        : String,
+    `type`    : Option[MenuType],
+    name      : String,
+    key       : Option[String],
+    uri       : Option[String],
+    parentId  : Option[String],
+    sort      : Int,
+    isShow    : Boolean,
     createTime: Instant = Instant.now,
     updateTime: Instant = Instant.now
   ) extends MenuCommand[String]

@@ -268,21 +268,22 @@ object WechatClient
   import com.oasis.osiris.wechat.impl.MenuType.MenuType
   import com.oasis.osiris.wechat.impl.QRCodeType.QRCodeType
   import com.typesafe.config.ConfigFactory
-  import play.api.libs.json.{Json, JsValue, Reads, Writes}
-  private[this]      val config            = ConfigFactory.load
-  private[impl]      val appId             = config.getString("wechat.app-id")
-  private[impl]      val secret            = config.getString("wechat.secret")
-  private[impl]      val token             = config.getString("wechat.token")
-  private[impl]      val enableJsApiTicket = config.getBoolean("wechat.enable-js-api-ticket")
-  private[impl]      val enableApiTicket   = config.getBoolean("wechat.enable-api-ticket")
-  private[impl]      val gateway           = "https://api.weixin.qq.com/"
+  import play.api.libs.json._
+
+  private[this] val config            = ConfigFactory.load
+  private[impl] val appId             = config.getString("wechat.app-id")
+  private[impl] val secret            = config.getString("wechat.secret")
+  private[impl] val token             = config.getString("wechat.token")
+  private[impl] val enableJsApiTicket = config.getBoolean("wechat.enable-js-api-ticket")
+  private[impl] val enableApiTicket   = config.getBoolean("wechat.enable-api-ticket")
+  private[impl] val gateway           = "https://api.weixin.qq.com/"
 
   //微信添加粉丝请求
-  case class AddTagFans(openIds: Vector[String],wxId: String)
+  case class AddTagFans(openIds: Vector[String], wxId: String)
 
   object AddTagFans
   {
-    implicit val writes:Writes[AddTagFans] = Writes[AddTagFans](d => Json.obj("openid_list" -> d.openIds,"tagid" -> d.wxId))
+    implicit val writes: Writes[AddTagFans] = Writes(d => Json.obj("openid_list" -> d.openIds, "tagid" -> d.wxId))
   }
 
   //图文消息素材
@@ -300,62 +301,62 @@ object WechatClient
 
   object NewsItem
   {
-    implicit val reads:Reads[NewsItem] = Reads[NewsItem]
+    implicit val reads: Reads[NewsItem] = Reads
     {
-      _.validate[JsValue].map(d => apply((d \ "title").as[String],(d \ "author").as[String],(d \ "digest").as[String],(d \ "content").as[String],
-        (d \ "content_source_url").as[String],(d \ "thumb_media_id").as[String],(d \ "thumb_url").as[String],(d \ "url").as[String]))
+      _.validate[JsValue].map(d => apply((d \ "title").as[String], (d \ "author").as[String], (d \ "digest").as[String], (d \ "content").as[String],
+        (d \ "content_source_url").as[String], (d \ "thumb_media_id").as[String], (d \ "thumb_url").as[String], (d \ "url").as[String]))
     }
-
-    implicit val writes:Writes[NewsItem] = Json.writes[NewsItem]
   }
 
   //创建二维码请求
-  case class CreateQRCode(actionName: QRCodeType,qrcodeInfo: (String,String),expireSeconds: Option[Int])
+  case class CreateQRCode(actionName: QRCodeType, qrcodeInfo: (String, String), expireSeconds: Option[Int])
 
   object CreateQRCode
   {
-    implicit val writes = Writes[CreateQRCode]
+    implicit val writes: Writes[CreateQRCode] = Writes
     {
       d =>
-      val info = Json.parse(s"""{"scene":{"${d.qrcodeInfo._1}":"${d.qrcodeInfo._2}"}}""")
+      val info = Json.parse(s"""{"scene":{"${d.qrcodeInfo._1 }":"${d.qrcodeInfo._2 }"}}""")
       d.expireSeconds.map(i => Json.obj("action_name" -> d.actionName, "action_info" -> info, "expire_seconds" -> i))
       .getOrElse(Json.obj("action_name" -> d.actionName, "action_info" -> info))
     }
   }
 
   //菜单按钮
-  case class Button(`type`: MenuType,name: String,key: Option[String],uri: Option[String],subButtons: Seq[Button])
+  case class Button(`type`: Option[MenuType], name: String, key: Option[String], uri: Option[String], subButtons: Seq[Button])
 
   object Button
   {
-    implicit val writes = Writes[Button]
+    implicit val reads: Reads[Button] = Json.reads
+    implicit val writes: Writes[Button] = Writes
     {
-      case Button(t, name, Some(key), None, xs) => Json.obj("type" -> t, "name" -> name, "key" -> key, "sub_button" -> Json.toJson(xs))
-      case Button(t, name, None, Some(uri), xs) => Json.obj("type" -> t, "name" -> name, "url" -> uri, "sub_button" -> Json.toJson(xs))
+      //父级
+      case Button(None, name, _, _, xs) => Json.obj("name" -> name, "sub_button" -> Json.toJson(xs))
+      //click类型
+      case Button(t, name, Some(key), None, Nil) => Json.obj("type" -> t, "name" -> name, "key" -> key)
+      //view类型
+      case Button(t, name, None, Some(uri), Nil) => Json.obj("type" -> t, "name" -> name, "url" -> uri)
     }
-
-    implicit val reads = Json.reads[Button]
   }
 
   //个性化菜单匹配规则
-  case class Matchrule(tagId: String,sex: String,country: String,province: String,city: String,clientPlatformType: String,language: String)
+  case class Matchrule(tagId: String, sex: String, country: String, province: String, city: String, clientPlatformType: String, language: String)
 
   object Matchrule
   {
-    implicit val writes = Writes[Matchrule](
+    implicit val writes: Writes[Matchrule] = Writes(
       d => Json.obj("tag_id" -> d.tagId, "sex" -> d.sex, "country" -> d.country, "province" -> d.province, "city" -> d.city,
         "client_platform_type" -> d.clientPlatformType, "language" -> d.language))
 
-    implicit val reads = Json.reads[Matchrule]
+    implicit val reads: Reads[Matchrule] = Json.reads
   }
 
-
   //重置菜单请求
-  case class ResetMenu(button: Seq[Button],matchrule: Option[Matchrule])
+  case class ResetMenu(button: Seq[Button], matchrule: Option[Matchrule])
 
   object ResetMenu
   {
-    implicit val format = Json.format[ResetMenu]
+    implicit val format: Format[ResetMenu] = Json.format
   }
 
 }

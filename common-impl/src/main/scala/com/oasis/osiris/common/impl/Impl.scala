@@ -35,11 +35,11 @@ class CommonServiceImpl
     for
     {
       //Id生成
-      id <- IdWorker.liftF
+      id  <- IdWorker.liftF
       //绑定命令
       cmd <- CallUpRecordCommand.Bind(id, d.thirdId, d.call, d.called, d.maxCallTime, d.noticeUri).liftF
       //发送绑定命令
-      _ <- refFor[CallUpRecordEntity](id).ask(cmd)
+      _   <- refFor[CallUpRecordEntity](id).ask(cmd)
       //Http201响应
     } yield Restful.created(r)(id)
   })
@@ -51,7 +51,7 @@ class CommonServiceImpl
     {
       //发出挂断命令返回挂断请求参数
       hangup <- refFor[CallUpRecordEntity](id).ask(CallUpRecordCommand.HangUp)
-      _ <- hangup match
+      _      <- hangup match
       {
         //调容联七陌接口挂断
         case Some(d) => moorClient.hangUp(d)
@@ -85,7 +85,7 @@ class CommonServiceImpl
       //参数
       param <- gerParam(r.uri.getQuery).liftF
       //更新命令
-      cmd <-
+      cmd   <-
       {
         log.info("通话事件推送更新回调")
         log.info("+---------------------------------------------------------------------------------------------------------------------------+")
@@ -96,14 +96,14 @@ class CommonServiceImpl
         CallUpRecordCommand.Update.fromMap(param)
       }.liftF
       //电话绑定关系Id
-      id <- redis.get[BindingRelation](s"$REDIS_KEY_BINDING${cmd.call }")
+      id    <- redis.get[BindingRelation](s"$REDIS_KEY_BINDING${cmd.call }")
       .map
       {
         case Some(d) => d.callUpRecordId
         case _       => throw NotFound(s"手机号${cmd.call }")
       }
       //发送更新命令
-      _ <- refFor[CallUpRecordEntity](id).ask(cmd)
+      _     <- refFor[CallUpRecordEntity](id).ask(cmd)
       //Http200响应
     } yield Restful.ok
   })
@@ -115,9 +115,9 @@ class CommonServiceImpl
     for
     {
       //主键
-      id <- IdWorker.liftF
+      id        <- IdWorker.liftF
       //验证码
-      code <- createCode(4).liftF
+      code      <- createCode(4).liftF
       //阿里短信唯一标识
       messageId <- d.smsType.toDomain[SmsType] match
       {
@@ -130,9 +130,9 @@ class CommonServiceImpl
         case _ => smsClient.sendAuthentication(d.mobile)(code)
       }
       //创建命令
-      cmd <- SmsRecordCommand.Create(id, d.mobile, d.smsType.toDomain, isSuccess = false, messageId, Some(code)).liftF
+      cmd       <- SmsRecordCommand.Create(id, d.mobile, d.smsType.toDomain, isSuccess = false, messageId, Some(code)).liftF
       //发送创建命令
-      _ <- refFor[SmsRecordEntity](id).ask(cmd)
+      _         <- refFor[SmsRecordEntity](id).ask(cmd)
       //Http201响应
     } yield Restful.created(r)(id)
   })
@@ -143,8 +143,9 @@ class CommonServiceImpl
       //验证码返回结果
     redis.get[String](s"${d.smsType }=>${d.mobile }").map
     {
-      case Some(s) if s == d.captcha => true
-      case _                         => false
+      case Some(d.captcha) => true
+//      case Some(s) if s == d.captcha => true
+      case _               => false
     }
   })
 

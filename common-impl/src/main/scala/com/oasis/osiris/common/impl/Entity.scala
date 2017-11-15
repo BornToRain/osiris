@@ -13,7 +13,7 @@ class CallUpRecordEntity(redis: RedisClient) extends PersistentEntity
 
   import com.oasis.osiris.common.impl.CallUpRecordCommand._
   import com.oasis.osiris.common.impl.CallUpRecordEvent._
-  import com.oasis.osiris.common.impl.client.MoorRequest
+  import com.oasis.osiris.common.impl.client.MoorClient
 
   override type Command = CallUpRecordCommand[_]
   override type Event = CallUpRecordEvent
@@ -51,12 +51,12 @@ class CallUpRecordEntity(redis: RedisClient) extends PersistentEntity
   //存在状态下操作
   def existence = Actions()
   //处理挂断命令
-  .onCommand[HangUp.type, Option[MoorRequest.HangUp]]
+  .onCommand[HangUp.type, Option[MoorClient.HangUp]]
   {
     //持久化挂断事件回复挂断请求参数
     case (_, ctx, state) => ctx.thenPersist(HungUp)
     {
-      _ => state.map(d => MoorRequest.HangUp(d.callId, None, d.id))
+      _ => state.map(d => MoorClient.HangUp(d.callId, None, d.id))
     }
   }
   //处理更新命令

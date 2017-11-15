@@ -8,25 +8,12 @@ import play.api.libs.ws._
 
 import scala.concurrent.ExecutionContext
 
-object MoorRequest
-{
-
-  //挂断请求
-  case class HangUp(CallId: Option[String], Agent: Option[String], ActionID: String)
-
-  object HangUp
-  {
-    implicit val format: Format[HangUp] = Json.format
-  }
-
-}
-
 /**
   * 容联七陌客户端
   */
 class MoorClient(ws: WSClient)(implicit ec: ExecutionContext)
 {
-  import MoorRequest._
+  import com.oasis.osiris.common.impl.client.MoorClient.HangUp
   import play.api.libs.json.Json
 
   /**
@@ -65,6 +52,14 @@ class MoorClient(ws: WSClient)(implicit ec: ExecutionContext)
 object MoorClient
 {
   import com.typesafe.config.ConfigFactory
+
+  //挂断请求
+  case class HangUp(CallId: Option[String], Agent: Option[String], ActionID: String)
+
+  object HangUp
+  {
+    implicit val format: Format[HangUp] = Json.format
+  }
 
   private[this] val config  = ConfigFactory.load
   //容联七陌账号

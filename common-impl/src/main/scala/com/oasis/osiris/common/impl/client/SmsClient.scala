@@ -23,7 +23,7 @@ class SmsClient(implicit ec: ExecutionContext)
   //发送有验证码短信
   private[this] def sendCaptcha(mobile: String)(code: String)(templateId: String) = for
   {
-    f <- (send(mobile)(templateId)_).liftF
+    f      <- (send(mobile)(templateId)_).liftF
     result <- templateId match
     {
       //身份验证
@@ -36,7 +36,7 @@ class SmsClient(implicit ec: ExecutionContext)
   //发送无验证码短信
   private[this] def sendSms(mobile: String)(templateId: String) = for
   {
-    f <- (send(mobile)(templateId)_).liftF
+    f      <- (send(mobile)(templateId)_).liftF
     result <- templateId match
     {
       //达人通知
@@ -50,11 +50,11 @@ class SmsClient(implicit ec: ExecutionContext)
   private[this] def send(mobile: String)(templateId: String)(map: Map[String, String] = Map.empty)(isPromotion: Boolean = false): Future[String] = for
   {
     //Step 1. 获取主题引用
-    account <- new CloudAccount(SmsClient.key, SmsClient.secret, SmsClient.endPoint).liftF
-    topic <- account.getMNSClient.getTopicRef(SmsClient.topic).liftF
+    account       <- new CloudAccount(SmsClient.key, SmsClient.secret, SmsClient.endPoint).liftF
+    topic         <- account.getMNSClient.getTopicRef(SmsClient.topic).liftF
     //Step 2. 设置SMS消息体（必须）
     // 注：目前暂时不支持消息内容为空，需要指定消息内容，不为空即可。
-    msg <-
+    msg           <-
     {
       val msg = new RawTopicMessage
       msg.setMessageBody("sms-message")
@@ -78,7 +78,7 @@ class SmsClient(implicit ec: ExecutionContext)
       msgAttributes
     }.liftF
     //Step 4. 发布SMS消息
-    result <- topic.publishMessage(msg, msgAttributes).getMessageId.liftF
+    result        <- topic.publishMessage(msg, msgAttributes).getMessageId.liftF
   } yield result
 }
 

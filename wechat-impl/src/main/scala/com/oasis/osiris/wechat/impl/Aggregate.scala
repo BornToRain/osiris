@@ -78,10 +78,10 @@ case class Menu
   //菜单名称
   name      : String,
   //菜单类型
-  `type`    : MenuType,
+  `type`    : Option[MenuType],
   //菜单键值 Key类型必传
   key       : Option[String],
-  //菜单uri View类型必传
+  //菜单uri view类型必传
   uri       : Option[String],
   //父菜单Id
   parentId  : Option[String],
@@ -102,7 +102,7 @@ object Menu
 object MenuType extends Enumeration
 {
   type MenuType = Value
-  val CLICK,VIEW = Value
+  val click,view = Value
 
   implicit val format:Format[MenuType] = enumFormat(MenuType)
 }

@@ -39,7 +39,7 @@ trait WechatService extends Service
     //重置微信菜单
     restCall(Method.POST, "/wechat/menus/reset", resetMenu),
     //创建微信菜单
-    restCall(Method.POST, "/wechat/menus/", createMenu),
+    restCall(Method.POST, "/wechat/menus", createMenu),
     //确认消息来自微信服务器
     restCall(Method.GET, "/wechat?signature&timestamp&nonce&echostr", get _),
     //处理微信服务器发来的消息(XML格式)

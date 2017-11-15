@@ -21,11 +21,15 @@ class WechatServiceImpl
   import com.lightbend.lagom.scaladsl.api.transport.BadRequest
   import com.lightbend.lagom.scaladsl.persistence.PersistentEntity
   import com.lightbend.lagom.scaladsl.server.ServerServiceCall
-  import com.oasis.osiris.tool.{IdWorker, Restful}
+  import com.oasis.osiris.tool.{DateTool, IdWorker, Restful}
   import com.oasis.osiris.tool.functional.Lift.ops._
   import com.oasis.osiris.wechat.api
   import com.oasis.osiris.wechat.api.WechatRequest
   import com.oasis.osiris.wechat.impl.tool.XMLTool
+  import com.oasis.osiris.wechat.impl.QRCodeType.QRCodeType
+  import com.oasis.osiris.wechat.impl.client.WechatClient.CreateQRCode
+  import com.oasis.osiris.wechat.impl.MenuType.MenuType
+  import play.api.libs.json.Json
 
   import scala.reflect.ClassTag
   import scala.util.Random
@@ -50,10 +54,6 @@ class WechatServiceImpl
   override def createQRCode = v2(ServerServiceCall
   {
     (r,d) =>
-
-    import com.oasis.osiris.wechat.impl.QRCodeType.QRCodeType
-    import com.oasis.osiris.wechat.impl.client.WechatClient.CreateQRCode
-
     for
     {
       //主键生成
@@ -80,7 +80,6 @@ class WechatServiceImpl
   override def getOpenId(code: String) = v2(ServerServiceCall
   {
     _ =>
-    import play.api.libs.json.Json
     for
     {
       json   <- wechat.oauth2(code)
@@ -96,7 +95,6 @@ class WechatServiceImpl
   override def getJsSDK(uri: String) = v2(ServerServiceCall
   {
     _ =>
-    import com.oasis.osiris.tool.DateTool
     for
     {
       timestamp <- DateTool.datetimeStamp.liftF
@@ -124,13 +122,11 @@ class WechatServiceImpl
   override def createMenu = v2(ServerServiceCall
   {
     (r,d) =>
-    import com.oasis.osiris.wechat.impl.MenuType.MenuType
-
     for
     {
       //主键生成
       id <- IdWorker.liftF
-      t <- d.`type`.toDomain[MenuType].liftF
+      t <- d.`type`.map(_.toDomain[MenuType]).liftF
       //创建命令
       cmd <- MenuCommand.Create(id,t,d.name,d.key,d.uri,d.parentId,d.sort,d.isShow).liftF
       //发送创建命令
@@ -153,8 +149,6 @@ class WechatServiceImpl
   override def post = logged(ServerServiceCall
   {
     d =>
-    import com.oasis.osiris.wechat.api.WechatRequest
-
     val request = WechatRequest.parseXML(d)
     val openId  = request.FromUserName
     val msgType = request.MsgType
@@ -191,9 +185,9 @@ class WechatServiceImpl
       //事件
       result <- event.get match
       {
-        case "LOCATION"                 => locationEvent(request)
-        case e @ ("SCAN" | "subscribe") => subscribeEvent(request)(e)
-        case _                          => success.liftF
+        case "LOCATION"               => locationEvent(request)
+        case e@("SCAN" | "subscribe") => subscribeEvent(request)(e)
+        case _                        => success.liftF
       }
     } yield result
   }

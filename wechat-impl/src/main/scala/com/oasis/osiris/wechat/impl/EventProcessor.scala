@@ -1,10 +1,13 @@
 package com.oasis.osiris.wechat.impl
+import java.time.Instant
+import java.util.Date
+
 import akka.Done
 import akka.event.slf4j.SLF4JLogging
-import java.util.Date
 import com.datastax.driver.core.PreparedStatement
 import com.lightbend.lagom.scaladsl.persistence.{EventStreamElement, ReadSideProcessor}
 import com.lightbend.lagom.scaladsl.persistence.cassandra.{CassandraReadSide, CassandraSession}
+import com.oasis.osiris.tool.db.{IntCodec, OptionCodec}
 import com.oasis.osiris.tool.db.Implicits._
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
@@ -16,15 +19,8 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 class QRCodeEventProcessor(session : CassandraSession, readSide: CassandraReadSide)(implicit ec: ExecutionContext)
 extends ReadSideProcessor[QRCodeEvent] with SLF4JLogging
 {
-  import java.time.Instant
-  import java.util.Date
 
-  import com.datastax.driver.core.PreparedStatement
-  import com.lightbend.lagom.scaladsl.persistence.EventStreamElement
-  import com.oasis.osiris.tool.db.{IntCodec, OptionCodec}
   import com.oasis.osiris.wechat.impl.QRCodeEvent.Created
-
-  import scala.concurrent.Promise
 
   private[this] val insertPro = Promise[PreparedStatement]
 
@@ -63,6 +59,7 @@ extends ReadSideProcessor[QRCodeEvent] with SLF4JLogging
       """.stripMargin
     }
   } yield Done
+
 
   private[this] def prepare =
   {
@@ -110,6 +107,12 @@ extends ReadSideProcessor[MenuEvent] with SLF4JLogging
 
   private[this] val insertPro = Promise[PreparedStatement]
 
+  //当前集群
+  private[this] def getCluster = session.underlying.map(_.getCluster)
+
+  //编码器列表
+  private[this] val codecs = Seq(OptionCodec(IntCodec), OptionCodec[String], OptionCodec[Instant])
+
   override def buildHandler = readSide.builder[MenuEvent]("menuEventOffSet")
   .setGlobalPrepare(() => createTable)
   .setPrepare(_ => prepare)
@@ -133,7 +136,7 @@ extends ReadSideProcessor[MenuEvent] with SLF4JLogging
         | uri text,
         | parent_id text,
         | sort int,
-        | is_show bool,
+        | is_show boolean,
         | create_time timestamp,
         | update_time timestamp
         |)
@@ -141,8 +144,11 @@ extends ReadSideProcessor[MenuEvent] with SLF4JLogging
     }
   } yield Done
 
+
   private[this] def prepare =
   {
+    //设置集群编码器
+    getCluster.map(_.getConfiguration.getCodecRegistry.register(codecs: _*))
     //菜单插入
     insertPro.completeWith(session.prepare(
       """
@@ -164,7 +170,7 @@ extends ReadSideProcessor[MenuEvent] with SLF4JLogging
         ps =>
         val d = ps.bind
         d.setString("id", cmd.id)
-        d.setString("type", cmd.`type`.toString)
+        d.setImplicitly("type", cmd.`type`.map(_.toString))
         d.setString("name", cmd.name)
         d.setImplicitly("key", cmd.key)
         d.setImplicitly("uri", cmd.uri)

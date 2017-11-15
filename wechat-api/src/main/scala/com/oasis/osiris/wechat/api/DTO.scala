@@ -47,7 +47,7 @@ object MenuDTO
   import com.oasis.osiris.wechat.api.MenuDTO.MenuType.MenuType
 
   //创建DTO
-  case class Create(`type`: MenuType, name: String, key: Option[String], uri: Option[String], parentId: Option[String], sort: Int, isShow: Boolean)
+  case class Create(`type`: Option[MenuType], name: String, key: Option[String], uri: Option[String], parentId: Option[String], sort: Int, isShow: Boolean)
 
   object Create
   {
@@ -58,7 +58,7 @@ object MenuDTO
   object MenuType extends Enumeration
   {
     type MenuType = Value
-    val CLICK, VIEW = Value
+    val click, view = Value
     implicit val format: Format[MenuType] = enumFormat(MenuType)
   }
 
@@ -68,8 +68,10 @@ case class JsSDK(appId: String, timestamp: String, nonceStr: String, signature: 
 
 object JsSDK
 {
-  implicit val reads  = Json.reads[JsSDK]
-  implicit val writes = Writes[JsSDK](
+  import play.api.libs.json.Reads
+
+  implicit val reads: Reads[JsSDK]  = Json.reads
+  implicit val writes: Writes[JsSDK] = Writes(
     d => Json.obj("appId" -> d.appId, "timeStamp" -> d.timestamp, "nonceStr" -> d.nonceStr, "signature" -> d.signature))
 }
 

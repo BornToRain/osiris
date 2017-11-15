@@ -75,7 +75,7 @@ class CallUpRecordEventProcessor
     }
   } yield Done
 
-  private[this] def prepare =
+  private[this] def prepare=
   {
     //设置集群编码器
     getCluster.map(_.getConfiguration.getCodecRegistry.register(codecs: _*))
