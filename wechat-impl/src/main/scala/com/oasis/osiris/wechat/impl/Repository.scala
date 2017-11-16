@@ -63,12 +63,3 @@ class MenuRepository(session: CassandraSession)(implicit ec: ExecutionContext)
     result  <- ResetMenu(buttons,None).liftF
   } yield result
 }
-
-object Test extends App
-{
-  val s:Option[String] = Some("1")
-
-  val s1 = "1"
-
-  println(s.map(_ == s1))
-}

@@ -57,7 +57,6 @@ lazy val `common-impl` = project("common-impl")
   )
 )
 .dependsOn(`osiris-tool`, `common-api`)
-
 //微信模块接口
 lazy val `wechat-api` = project("wechat-api")
 .settings(
@@ -80,3 +79,22 @@ lazy val `wechat-impl` = project("wechat-impl")
   )
 )
 .dependsOn(`osiris-tool`, `wechat-api`)
+//支付模块接口
+lazy val `payment-api` = project("payment-api")
+.settings(
+  name := "payment-api",
+  libraryDependencies ++= Seq(
+    lagomScaladslApi
+  )
+)
+.dependsOn(`osiris-tool`)
+//支付模块实现
+lazy val `payment-impl` = project("payment-impl")
+.enablePlugins(LagomScala)
+.settings(
+  name := "payment-impl",
+  libraryDependencies ++= Seq(
+    Library.macwire,
+    lagomScaladslServer
+  )
+)
